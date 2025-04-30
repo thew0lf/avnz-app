@@ -1,0 +1,75 @@
+name: "avnz_app"
+services:
+    app:
+        image: laravel/sail:latest
+        ports:
+            - "8080:80"
+        environment:
+            WWWUSER: "${WWWUSER:-1000}"
+            WWWGROUP: "${WWWGROUP:-1000}"
+            XDEBUG_MODE: "${XDEBUG_MODE:-off}" # Enable if debugging is needed
+            APP_ENV: local
+        volumes:
+            - ".:/var/www/html"
+        depends_on:
+            - mongodb
+        networks:
+            - laravel
+
+    mongodb:
+        image: mongo:latest
+        container_name: laravel_mongodb
+        restart: unless-stopped
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: laravel
+            MONGO_INITDB_ROOT_PASSWORD: password
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongodb_data:/data/db
+        networks:
+            - laravel
+
+    queue:
+        image: laravel/sail:latest
+        command: >
+            sh -c "while ! nc -z mongodb 27017; do
+            echo 'Waiting for MongoDB connection...'; sleep 1;
+            done &&
+            php artisan queue:work --tries=3 --memory=128"
+        depends_on:
+            - app
+            - mongodb
+        volumes:
+            - ".:/var/www/html"
+        networks:
+            - laravel
+
+    npm:
+        image: node:18
+        working_dir: /var/www/html
+        volumes:
+            - ".:/var/www/html"
+        networks:
+            - laravel
+        command: >
+            sh -c "
+            npm install &&
+            npm run dev"
+
+    redis:
+        image: redis:6
+        container_name: laravel_redis
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        networks:
+            - laravel
+
+volumes:
+    mongodb_data:
+        driver: local
+
+networks:
+    laravel:
+        driver: bridge
