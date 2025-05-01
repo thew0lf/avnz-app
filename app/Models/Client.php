@@ -6,6 +6,7 @@ namespace App\Models;
 use MongoDB\Laravel\Eloquent\Model;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use App\Models\AddressBook;
 
 class Client extends Model
 {
@@ -27,12 +28,12 @@ class Client extends Model
         });
     }
 
-    public function addressBook()
+    public function addressBook():BelongsTo
     {
         return $this->belongsTo(AddressBook::class);
     }
 
-    public function project()
+    public function project():BelongsTo
     {
         return $this->belongsTo(Project::class);
     }

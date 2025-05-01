@@ -9,6 +9,7 @@ use MongoDB\Laravel\Auth\User as Authenticatable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\BelongsToMany;
 use MongoDB\Laravel\Relations\HasMany;
+use App\Models\AddressBook;
 
 class User extends Authenticatable
 {
