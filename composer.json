@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "avnz-app",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "The dashboard framework with permissions and ACLs.",
     "keywords": [
         "laravel",
         "framework"
