@@ -1,6 +1,8 @@
 {
     "private": true,
     "type": "module",
+    "name": "avnz-app",
+    "description": "AVNZ APP: Modern Laravel 12 + Inertia.js/React dashboard powered by MongoDB Atlas.",
     "scripts": {
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
