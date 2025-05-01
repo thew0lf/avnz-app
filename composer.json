@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "avnz-app",
     "type": "project",
-    "description": "The dashboard framework with permissions and ACLs.",
+    "description": "AVNZ APP: Modern Laravel 12 + Inertia.js/React dashboard powered by MongoDB Atlas.",
     "keywords": [
         "laravel",
         "framework"
