@@ -1,124 +1,101 @@
-# Project Planning: Laravel 12 + Angular + MongoDB Atlas Dashboard
+**AVNZ APP Planning and Architecture**
 
-## Project Overview
-This project aims to create a web application using Laravel 12 as the backend framework, Angular as the frontend framework, and MongoDB Atlas as the database solution. The application will feature a comprehensive dashboard for data visualization and management.
+---
 
-## Technical Stack
+## 1. Overview
+AVNZ APP is a modern dashboard application consisting of a Laravel-powered REST API and an Inertia + React frontend, backed by MongoDB Atlas. The architecture emphasizes modularity, testability, and compliance with SOC2 standards.
 
-### Backend
-- **Laravel 12**: PHP framework for building the API and server-side logic
-- **PHP 8.2+**: Programming language requirement for Laravel 12
-- **MongoDB PHP Driver**: Native PHP extension for MongoDB communication
-- **Laravel MongoDB Package**: For seamless integration between Laravel and MongoDB
-- **JWT Authentication**: For secure API authentication
+## 2. Technology Stack
 
-### Frontend
-- **Angular 17+**: Frontend framework for building a single-page application
-- **TypeScript**: For type-safe code in Angular
-- **ShadCN** UI Components https://ui.shadcn.com/docs/components/sidebar
+- **Backend**: Laravel 12 (PHP 8.2+)
+    - **ODM**: `jenssegers/laravel-mongodb` + native MongoDB PHP driver
+    - **Auth**: JWT (via `tymon/jwt-auth`) for stateless API authentication
+    - **Coding Standards**: PSR-12, strict type hints, comprehensive docblocks
+    - **Testing**: PestPHP for unit tests, PHPUnit for integration tests
+    - **API Docs**: Swagger/OpenAPI spec auto-generated via `darkaonline/l5-swagger`
 
-### Database
-- **MongoDB Atlas**: Cloud-hosted MongoDB service
-- **MongoDB Compass**: GUI for database management and visualization
+- **Frontend**: Inertia.js + React (TypeScript)
+    - **UI Library**: shadcn/ui components
+    - **Data Tables**: `@tanstack/react-table`
+    - **Build**: Vite with React and TypeScript support
+    - **Form Management**: React Hook Form + Zod for schema validation
+    - **Styling**: Tailwind CSS (with `tailwind.config.js`)
 
-### DevOps & Tools
-- **Git**: Version control
-- **Docker**: For containerization and a consistent development environment
-- **CI/CD Pipeline**: GitHub Actions or similar for automated testing and deployment
-- **Swagger/OpenAPI**: For API documentation
+- **Database**: MongoDB Atlas
+    - Multi-environment clusters (dev, staging, prod)
+    - Indexed collections for high-performance reads
+    - Aggregation pipelines for reporting
 
-## Architecture Overview
+- **DevOps & CI/CD**
+    - Docker Compose for local development
+    - GitHub Actions workflows for linting, testing, and deploy
+    - Environments managed via `.env` and GitHub Secrets
+    - Deployment targets: AWS ECS (Fargate) behind ALB + CloudFront
 
-The project will follow a decoupled architecture:
+## 3. Directory Structure
 
-1. **Frontend (Angular)**
-   - Single-page application
-   - Communicates with backend via RESTful API
-   - Contains dashboard components, forms, and data visualization
+```
+avnz-app/
+├─ app/                 # Laravel app code (Models, Controllers, Services, Repos)
+├─ bootstrap/           # Framework bootstrap files
+├─ config/              # Configuration (database, cache, auth)
+├─ database/            # Migrations (if any) & seeders
+├─ public/              # Public assets and entrypoint
+├─ resources/
+│  ├─ views/            # Inertia root view & error pages
+│  └─ tsx/              # React page components & shared UI
+├─ routes/
+│  ├─ api.php           # API routes
+│  └─ web.php           # Inertia web routes
+├─ scripts/             # Utility scripts (Python, Bash)
+├─ storage/             # Logs, cache, file uploads
+├─ tests/               # Pest and PHPUnit tests mirroring `app/` structure
+├─ .github/             # GitHub Actions workflows
+├─ docker-compose.yml   # Local dev stack
+├─ .env.example         # Environment variable template
+├─ composer.json        # PHP dependencies & metadata
+├─ package.json         # NPM dependencies & metadata
+├─ vite.config.ts       # Vite build config
+└─ tailwind.config.js   # Tailwind CSS configuration
+```
 
-2. **UI Components (ui.shadcn.com)**  ShadCN UI Components https://ui.shadcn.com/docs/components/sidebar
-   - Create all tables using `@tanstack/react-table` docs: https://ui.shadcn.com/docs/components/data-table
-   - Create API endpoints for all data being retrieved from MongoDB. 
-   
-   
+## 4. Coding & Documentation Standards
 
-3. **Backend (Laravel 12)**
-   - RESTful API endpoints
-   - Authentication and authorization
-   - Business logic
-   - MongoDB data access layer
-   - mongodb/laravel-mongodb 
-   - PSR 12 compliance
-   
+- **PSR-12**: All PHP code must strictly follow PSR-12; run `composer cs-check` pre-commit.
+- **Docblocks**: Every class, method, and function must have a PHPDoc block with parameter and return types.
+- **Type Hints**: Use scalar and object type hints; return types are mandatory.
+- **Tests**: For every new feature or bugfix:
+    - **Unit Tests**: At least one happy-path, one edge-case, and one failure scenario.
+    - **Integration/E2E**: Core API endpoints and critical UI flows.
+- **Git Workflows**:
+    - Feature branches named `feature/xxx`, PRs must pass CI checks before merge.
+    - Use GitHub Issues + `TASK.md` to track progress.
 
-4. **Database (MongoDB Atlas)**
-   - mongodb/laravel-mongodb
-   - Document-based NoSQL database
-   - Cloud-hosted for scalability and reliability
-   - Optimized for flexible schema design
+## 5. Security & Compliance
 
-## MongoDB Integration Strategy
+- **SOC2/HIPAA**: Ensure encryption at rest (MongoDB Atlas) and in transit (TLS everywhere).
+- **Environment Secrets**: No secrets in code; manage via environment variables and GitHub Secrets.
+- **Input Validation**: All API inputs validated via Form Requests and Zod schemas.
+- **Logging & Monitoring**: Structured logs (JSON) stored in `storage/logs`, integrate with CloudWatch.
 
-For integrating MongoDB with Laravel:
-- Use the `laravel/laravel-mongodb` package for Eloquent-like syntax
-- Configure MongoDB connection in Laravel's config files
-- Create MongoDB-specific models extending `MongoDB\Laravel\Eloquent\Model`
-- Implement the repository pattern for database operations
+## 6. Next Steps & Milestones
 
-## Dashboard Features
+1. **Environment Bootstrapping**
+    - Finalize `docker-compose.yml` for Laravel, MongoDB, Redis, Node.
+    - Create initial `.env.example` with MongoDB URI placeholders.
+2. **Proof-of-Concept**
+    - Scaffold a sample `User` model, JWT login endpoint, and a protected Inertia dashboard page.
+    - Write sample Pest tests for auth flow.
+3. **Component Library & Styles**
+    - Initialize Tailwind and `shadcn/ui` in the frontend.
+    - Create a reusable data-table component with sorting/pagination.
+4. **Full CRUD & Aggregations**
+    - Define core domain models (e.g. Study, Template, Translation).
+    - Implement API endpoints and corresponding React pages.
+5. **Testing & Documentation**
+    - Expand test coverage to 80%+.
+    - Publish OpenAPI docs and user setup guides.
 
-1. **Authentication & User Management**
-   - User registration and login
-   - Role-based access control
-   - Profile management
+---
 
-2. **Data Visualization**
-   - Customizable charts and graphs
-   - Real-time data updates
-   - Export capabilities
-
-3. **CRUD Operations**
-   - Forms for data entry
-   - Validation rules
-   - Batch operations
-
-4. **Reporting**
-   - Generate reports based on MongoDB aggregations
-   - Scheduled reports
-   - Export to multiple formats
-
-5. **System Monitoring**
-   - Database performance metrics
-   - API usage statistics
-   - User activity logs
-
-## Deployment Strategy
-
-The application will be deployed using:
-- Docker containers
-- Nginx web server
-- Separate environments for development, staging, and production
-- MongoDB Atlas clusters corresponding to each environment
-
-## Performance Considerations
-
-- Implement caching for frequently accessed data
-- Use MongoDB indexes for query optimization
-- Lazy loading for Angular modules
-- API response compression
-- MongoDB read/write concern configurations for optimal performance
-
-## Security Measures
-
-- HTTPS for all communications
-- JWT token expiration and refresh strategy
-- Input validation on both the frontend and backend
-- MongoDB Atlas security features (network access, encryption at rest)
-- Regular security audits
-
-## Scalability Plan
-
-- Horizontal scaling of Laravel backend
-- MongoDB Atlas auto-scaling
-- Load balancing
-- Content Delivery Network (CDN) for static assets
+*Last updated: 2025-04-30*
