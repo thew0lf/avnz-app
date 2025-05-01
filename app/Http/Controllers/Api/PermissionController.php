@@ -2,20 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Auth\AuthenticatedController;
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+
 class PermissionController extends Controller
 {
-    public function __construct()
-    {
-        // Apply middleware for authentication and authorization as needed
-        $this->middleware('auth:sanctum'); // You can change to your auth middleware
-        // Optionally add policy or gates authorization here
-    }
 
     /**
      * Display a listing of the permissions.

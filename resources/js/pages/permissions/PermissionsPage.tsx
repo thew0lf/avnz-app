@@ -1,246 +1,157 @@
-import React, {useEffect, useState} from "react";
-import {ColumnDef, flexRender, getCoreRowModel, useReactTable,} from "@tanstack/react-table";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@radix-ui/react-dropdown-menu";
-import {LucideMoreVertical, LucideTrash2} from "lucide-react";
-
-type Permission = {
-  _id: string;
-  name: string;
-  description: string;
-  role: string;
-  resource: string;
-  permissions: string[]; // e.g. ['create', 'update', 'delete', 'list']
-};
-
-type PermissionRow = Omit<Permission, "permissions"> & {
-  permissions: string[];
-};
-
-const apiUrl = "/api/permissions";
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+    ColumnDef,
+    useReactTable,
+    getCoreRowModel,
+    flexRender,
+} from '@tanstack/react-table';
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+} from '@radix-ui/react-dropdown-menu';
+import { motion } from 'framer-motion';
+import { Permission } from '@/types/permission';
 
 export default function PermissionsPage() {
-  const [permissionsData, setPermissionsData] = useState<Permission[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+    const [permissionsData, setPermissionsData] = useState<Permission[]>([]);
+    const [filter, setFilter] = useState<string>('');
 
-  // Fetch permissions from backend
-  const fetchPermissions = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error("Failed to fetch permissions");
-      const data = (await res.json()) as Permission[];
-      setPermissionsData(data);
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchPermissions = useCallback(async () => {
+        try {
+            const res = await fetch('/api/permissions');
+            if (!res.ok) throw new Error(`Error: ${res.statusText}`);
+            setPermissionsData(await res.json());
+        } catch (error) {
+            console.error(error);
+        }
+    }, []);
 
-  // Delete a permission item by id
-  const deletePermission = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this permission?")) return;
-    try {
-      const res = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete permission");
-      setPermissionsData((prev) => prev.filter((p) => p._id !== id));
-    } catch (err: any) {
-      alert(err.message || "Unknown error deleting permission");
-    }
-  };
+    useEffect(() => {
+        fetchPermissions();
+    }, [fetchPermissions]);
 
-  // Toggle checkbox logic: we do not implement update here; just display
-  // If you want to support updates you can implement them similarly.
+    const handleDelete = useCallback(async (id: string) => {
+        if (!confirm('Confirm delete?')) return;
+        try {
+            const res = await fetch(`/api/permissions/${id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error(`Error: ${res.statusText}`);
+            setPermissionsData(prev => prev.filter(p => p.id !== id));
+        } catch (error) {
+            console.error(error);
+        }
+    }, []);
 
-  useEffect(() => {
-    fetchPermissions();
-  }, []);
+    const filteredData = useMemo(
+        () =>
+            permissionsData.filter(p =>
+                p.name.toLowerCase().includes(filter.toLowerCase())
+            ),
+        [permissionsData, filter]
+    );
 
-  // Columns definition for react-table
-  const columns = React.useMemo<ColumnDef<PermissionRow>[]>(
-    () => [
-      {
-        accessorKey: "name",
-        header: "Name",
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: "description",
-        header: "Description",
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: "role",
-        header: "Role",
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: "resource",
-        header: "Resource",
-        cell: (info) => info.getValue(),
-      },
-      {
-        id: "list",
-        header: "List",
-        cell: (info) => {
-          const perms = info.row.original.permissions;
-          return (
-            <input
-              type="checkbox"
-              readOnly
-              checked={perms.includes("list")}
-              aria-label="List permission checkbox"
-            />
-          );
-        },
-      },
-      {
-        id: "create",
-        header: "Create",
-        cell: (info) => {
-          const perms = info.row.original.permissions;
-          return (
-            <input
-              type="checkbox"
-              readOnly
-              checked={perms.includes("create")}
-              aria-label="Create permission checkbox"
-            />
-          );
-        },
-      },
-      {
-        id: "update",
-        header: "Update",
-        cell: (info) => {
-          const perms = info.row.original.permissions;
-          return (
-            <input
-              type="checkbox"
-              readOnly
-              checked={perms.includes("update")}
-              aria-label="Update permission checkbox"
-            />
-          );
-        },
-      },
-      {
-        id: "delete",
-        header: "Delete",
-        cell: (info) => {
-          const perms = info.row.original.permissions;
-          return (
-            <input
-              type="checkbox"
-              readOnly
-              checked={perms.includes("delete")}
-              aria-label="Delete permission checkbox"
-            />
-          );
-        },
-      },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => {
-          const permission = row.original;
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  aria-label="Actions"
-                  className="p-1 rounded hover:bg-gray-200"
-                  type="button"
-                >
-                  <LucideMoreVertical size={18} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem
-                  onClick={() => deletePermission(permission._id)}
-                  className="flex items-center gap-2 text-red-600"
-                >
-                  <LucideTrash2 size={16} />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
-      },
-    ],
-    [permissionsData]
-  );
+    const columns = useMemo<ColumnDef<Permission>[]>(
+        () => [
+            { header: 'Name', accessorKey: 'name' },
+            { header: 'Guard', accessorKey: 'guard_name' },
+            { header: 'Created', accessorKey: 'created_at' },
+            { header: 'Updated', accessorKey: 'updated_at' },
+            {
+                id: 'actions',
+                header: 'Actions',
+                cell: ({ row }) => (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="p-2 rounded-2xl shadow-sm">
+                                •••
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => {/* edit logic */}}>
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(row.original.id)}>
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ),
+            },
+        ],
+        [handleDelete]
+    );
 
-  const table = useReactTable({
-    data: permissionsData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+    const table = useReactTable({
+        data: filteredData,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+    });
 
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Permissions</h1>
-      {loading && <p>Loading permissions...</p>}
-      {error && (
-        <p className="text-red-600 mb-4" role="alert">
-          {error}
-        </p>
-      )}
-      {!loading && !error && (
-        <div className="overflow-x-auto border rounded">
-          <table className="w-full border-collapse">
-            <thead className="bg-gray-100">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="border p-2 text-left text-sm font-medium"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="p-4 text-center text-gray-500"
-                  >
-                    No permissions found.
-                  </td>
-                </tr>
-              )}
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="border p-2 text-sm dark:text-gray-900"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </main>
-  );
+    return (
+        <Card className="rounded-2xl shadow p-4 grid gap-4">
+            <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <h1 className="text-xl font-bold">Permissions</h1>
+                    <Input
+                        placeholder="Search permissions..."
+                        value={filter}
+                        onChange={e => setFilter(e.target.value)}
+                        className="max-w-sm"
+                    />
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="overflow-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                        {table.getHeaderGroups().map(headerGroup => (
+                            <tr key={headerGroup.id}>
+                                {headerGroup.headers.map(header => (
+                                    <th
+                                        key={header.id}
+                                        className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500"
+                                    >
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </th>
+                                ))}
+                            </tr>
+                        ))}
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                        {table.getRowModel().rows.map(row => (
+                            <motion.tr
+                                key={row.id}
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 5 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                {row.getVisibleCells().map(cell => (
+                                    <td
+                                        key={cell.id}
+                                        className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap"
+                                    >
+                                        {flexRender(
+                                            cell.column.columnDef.cell,
+                                            cell.getContext()
+                                        )}
+                                    </td>
+                                ))}
+                            </motion.tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            </CardContent>
+        </Card>
+    );
 }

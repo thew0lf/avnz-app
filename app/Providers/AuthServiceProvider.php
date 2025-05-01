@@ -34,15 +34,15 @@ class AuthServiceProvider extends ServiceProvider
             return $this->permissionService->hasPermission($project, $client, $company, $user, 'administrator')
                 || $this->permissionService->hasPermission($project, $client, $company, $user, 'dashboard');
         });
-        Gate::define('permissions', function (User $user) {
-
-            $client     = session('client');
-            $project    = session('project');
-            $company    = session('company');
-
-            return $this->permissionService->hasPermission($project, $client, $company, $user, 'administrator')
-                || $this->permissionService->hasPermission($project, $client, $company, $user, 'permissions');
-        });
+//        Gate::define('permissions', function (User $user) {
+//
+//            $client     = session('client');
+//            $project    = session('project');
+//            $company    = session('company');
+//
+//            return $this->permissionService->hasPermission($project, $client, $company, $user, 'administrator')
+//                || $this->permissionService->hasPermission($project, $client, $company, $user, 'permissions');
+//        });
 
         Gate::define('members-and-roles.roles.list', function (User $user ) {
 

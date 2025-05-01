@@ -15,11 +15,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('members-and-roles/roles',function(){
         Gate::authorize('members-and-roles.roles.list');
         return Inertia::render('members-and-roles/roles');
-    })
-        ->name('members-and-roles.roles');
+    })->name('members-and-roles.roles');
 
     Route::get('members-and-roles/permissions', function () {
         // This should correspond to the React component path without the extension
-        return Inertia::render('permissions/permissions');
+        return Inertia::render('permissions/PermissionsPage');
     })->name('permissions.index');
 });
