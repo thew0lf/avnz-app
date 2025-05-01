@@ -74,7 +74,7 @@ class User extends Authenticatable
         return $this->belongsToMany(Company::class);
     }
 
-    public function permission(): HasMany
+    public function permissions(): HasMany
     {
         return $this->hasMany(Permission::class);
     }
