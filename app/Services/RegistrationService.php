@@ -12,7 +12,7 @@ class RegistrationService extends AbstractService
     protected ClientService $clientService;
     protected CompanyService $companyService;
     protected UserService $userService;
-    protected ACLService $ACLService;
+    protected RoleService $roleService;
     protected PermissionService $permissionService;
 
     protected Client $client;
@@ -70,17 +70,17 @@ class RegistrationService extends AbstractService
     }
 
     public function __construct(
-        ProjectService $projectService,
-        ClientService $clientService,
-        CompanyService $companyService,
-        UserService $userService,
-        ACLService $aclService,
+        ProjectService    $projectService,
+        ClientService     $clientService,
+        CompanyService    $companyService,
+        UserService       $userService,
+        RoleService       $roleService,
         PermissionService $permissionService
     ) {
         $this->clientService     = $clientService;
         $this->companyService    = $companyService;
         $this->userService       = $userService;
-        $this->ACLService        = $aclService;
+        $this->roleService        = $roleService;
         $this->permissionService = $permissionService;
     }
 
@@ -101,17 +101,12 @@ class RegistrationService extends AbstractService
         $this->setProject($project);
 
         return DB::transaction(function () use ($validated, $project) {
-            // Determine the user role based on whether any users exist.
-            // If this is the first user, they are granted the "administrator" role, otherwise "account_administrator".
             $roleSlug = !$this->userService
                                 ->repository->getQuery()
                                 ->limit(1)
-                                ->first() ? 'administrator' : 'account_administrator';
+                                ->first() ? 'administrator' : 'client_administrator';
             $roleName = ucwords(str_replace('_', ' ', $roleSlug));
-            $this->ACLService->findOrCreate(
-                ['role' => $roleSlug, 'resource' => 'all', 'name' => $roleName],
-                ['permissions' => ['all']]
-            );
+
 
             // Create client and company instances
             $client = $this->clientService->create([
@@ -138,7 +133,12 @@ class RegistrationService extends AbstractService
             $user->project()->attach($project);
             $this->setClient($client);
             $this->setCompany($company);
-            $this->permissionService->givePermissionsTo($user, $project, $client, $company, [$roleSlug]);
+            //$this->permissionService->givePermissionsTo($user, $project, $client, $company, [$roleSlug])
+            if($roleSlug == 'administrator'){
+                $this->roleService->grant($user, $roleSlug, 'project', $project->_id);
+            }else{
+                $this->roleService->grant($user, $roleSlug, 'client', $client->_id);
+            }
             return $user;
         });
     }

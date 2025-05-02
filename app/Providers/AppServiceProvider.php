@@ -4,12 +4,11 @@ namespace App\Providers;
 
 
 use App\Repositories\ACLRepository;
-use App\Services\ACLService;
+use App\Services\RoleService;
 use App\Models\{User,Project,Client,Company};
 use App\Services\ProjectService;
 use App\Services\UserService;
 use Illuminate\Support\ServiceProvider;
-use App\Repositories\Abstracts\AbstractRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\UserRepository;
 
@@ -56,9 +55,8 @@ class AppServiceProvider extends ServiceProvider
             return new ACLRepository(ACL::class);
         });
 
-        $this->app->bind(ACLService::class, function ($app) {
-            return new ACLService($app->make(ACLRepository::class));
-        });
+
+        $this->app->singleton(\App\Services\RoleService::class);
     }
 
     /**

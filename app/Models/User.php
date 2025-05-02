@@ -4,12 +4,9 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
 use MongoDB\Laravel\Auth\User as Authenticatable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\BelongsToMany;
-use MongoDB\Laravel\Relations\HasMany;
-use App\Models\AddressBook;
 
 class User extends Authenticatable
 {
@@ -21,8 +18,13 @@ class User extends Authenticatable
         'name', 'email', 'password', 'key', 'username', 'display_name',
         'first_name', 'last_name', 'address_book_id', 'status',
         'email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at',
-        'project_id', 'client_id', 'company_id','role'
+
+        'project_id',
+        'client_id',
+        'company_id',
+        'roles'
     ];
+    protected $hidden = ['password'];
 
     protected static function boot(): void
     {
@@ -74,8 +76,73 @@ class User extends Authenticatable
         return $this->belongsToMany(Company::class);
     }
 
-    public function permissions(): HasMany
+    /**
+     * Global roles
+     */
+    public function roles()
     {
-        return $this->hasMany(Permission::class);
+        return $this->belongsToMany(Role::class, null, 'roles', '_id');
     }
+
+    /**
+     * Scoped role assignments
+     */
+    public function roleAssignments()
+    {
+        return $this->hasMany(RoleAssignment::class, 'user_id', '_id');
+    }
+
+    /**
+     * Assign a role to a specific scope
+     */
+    public function assignRoleScope(Role $role, string $scopeType, $scopeId)
+    {
+        return RoleAssignment::create([
+            'user_id'    => $this->id,
+            'role_id'    => $role->id,
+            'scope_type' => $scopeType,
+            'scope_id'   => $scopeId,
+        ]);
+    }
+
+    /**
+     * Get roles for a given scope
+     */
+    public function scopedRoles(string $scopeType, $scopeId)
+    {
+        return $this->roleAssignments()
+        ->where('scope_type', $scopeType)
+            ->where('scope_id', $scopeId)
+            ->with('role.permissions')
+        ->get()
+        ->pluck('role');
+    }
+
+    /**
+     * Check if a user has a permission globally
+     */
+    public function hasGlobalPermission(string $permissionName): bool
+    {
+        return $this->roles
+        ->flatMap(fn($role) => $role->permissions)
+            ->pluck('name')
+        ->contains($permissionName);
+    }
+
+    /**
+     * Check if a user has a permission within a given scope
+     *
+     * @param string $permissionName
+     * @param string $scopeType
+     * @param mixed $scopeId
+     * @return bool
+     */
+    public function hasPermissionInScope(string $permissionName, string $scopeType, $scopeId): bool
+    {
+        return $this->scopedRoles($scopeType, $scopeId)
+            ->flatMap(fn($role) => $role->permissions)
+            ->pluck('name')
+        ->contains($permissionName);
+    }
+
 }

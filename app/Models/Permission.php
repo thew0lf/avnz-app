@@ -1,22 +1,18 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Models;
 
-use MongoDB\Laravel\Eloquent\Model as Eloquent;
+use App\Models\Role;
+use MongoDB\Laravel\Relations\{HasMany,BelongsToMany,BelongsTo};
+use MongoDB\Laravel\Eloquent\Model;
 
-class Permission extends Eloquent
+
+class Permission extends Model
 {
-    // Define the collection name, e.g. "acls".
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'name',
         'description',
-        'role',       // Example: 'admin', 'editor', 'user'
-        'resource',
-        'permissions' // Array, e.g. ['create', 'update', 'delete','list']
     ];
 }

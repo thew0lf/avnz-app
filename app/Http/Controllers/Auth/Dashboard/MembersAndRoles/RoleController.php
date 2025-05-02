@@ -16,7 +16,7 @@ class RoleController extends AuthenticatedController
     public function index(): Response
     {
         // For demonstration, using static roles.
-        // Replace this with your actual ACL roles retrieval logic.
+        // Replace this with your actual Role roles retrieval logic.
         $roles = [
             ['id' => 1, 'name' => 'Admin'],
         ];

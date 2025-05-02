@@ -1,7 +1,7 @@
 // src/Pages/Roles.tsx
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
-import { RolePermissionsModal } from '@/components/RolePermissionsModal';
+import { RolePermissionsModal } from '@/components/permissions-modal';
 
 const breadcrumbs = [
     { title: 'Dashboard', href: '/dashboard' },

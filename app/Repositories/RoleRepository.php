@@ -2,21 +2,21 @@
 
 namespace App\Repositories;
 
-use App\Models\ACL;
+use App\Models\Role;
 use App\Repositories\Abstracts\AbstractRepository;
 
 /**
  * Class ACLRepository
  *
- * Repository for managing ACL related operations.
+ * Repository for managing Role related operations.
  */
-class ACLRepository extends AbstractRepository
+class RoleRepository extends AbstractRepository
 {
     /**
      * ACLRepository constructor.
      */
     public function __construct()
     {
-        parent::__construct(ACL::class);
+        parent::__construct(Role::class);
     }
 }

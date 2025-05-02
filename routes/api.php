@@ -12,4 +12,4 @@ Route::prefix('api')
         Route::get('project', [ProjectController::class, 'index'])
             ->name('project.index');
         Route::apiResource('permissions', PermissionController::class);
-    });
+});

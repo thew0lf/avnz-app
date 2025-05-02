@@ -19,6 +19,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('members-and-roles/permissions', function () {
         // This should correspond to the React component path without the extension
-        return Inertia::render('permissions/PermissionsPage');
+        return Inertia::render('permissions/permissions');
     })->name('permissions.index');
 });

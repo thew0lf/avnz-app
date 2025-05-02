@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Repositories\UserPermissionRepository;
+use App\Repositories\PermissionRepository;
 use App\Services\Abstracts\AbstractService;
 use App\Models\Project;
 use App\Models\Client;
@@ -18,7 +18,7 @@ class PermissionService extends AbstractService
 
     public function __construct()
     {
-        $this->repository = new UserPermissionRepository();
+        $this->repository = new PermissionRepository();
     }
     public function hasPermission(Project $project, Client $client,Company $company, User $user,string $role): bool
     {
