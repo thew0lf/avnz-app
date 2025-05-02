@@ -51,11 +51,6 @@ class AppServiceProvider extends ServiceProvider
             return new ProjectService($app->make(ProjectRepository::class));
         });
 
-        $this->app->bind(ACLRepository::class, function ($app) {
-            return new ACLRepository(ACL::class);
-        });
-
-
         $this->app->singleton(\App\Services\RoleService::class);
     }
 

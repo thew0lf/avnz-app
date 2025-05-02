@@ -12,9 +12,9 @@ class Role extends Model
         'permissions', // array of Permission _id's
     ];
 
-    protected $casts = [
-        'permissions' => 'array',
-    ];
+//    protected $casts = [
+//        'permissions' => 'array',
+//    ];
 
     /**
      * Permissions granted to this role

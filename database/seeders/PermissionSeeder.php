@@ -11,7 +11,7 @@ class PermissionSeeder extends Seeder
         $actions = ['list', 'view', 'create', 'modify', 'delete'];
         foreach ($actions as $action) {
             Permission::firstOrCreate(
-                ['name' => $action],
+                ['name' => $action, 'guard_name' => 'web'],
                 ['description' => ucfirst($action) . ' permission']
             );
         }

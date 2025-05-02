@@ -5,8 +5,6 @@ use MongoDB\Laravel\Eloquent\Model;
 
 class ResourceAcl extends Model
 {
-    protected $connection = 'mongodb';
-    protected $collection = 'resource_acls';
 
     protected $fillable = [
         'resourceType', // e.g. 'project'
@@ -14,7 +12,7 @@ class ResourceAcl extends Model
         'grants',       // array of { userId, permissions[] }
     ];
 
-    protected $casts = ['grants' => 'array'];
+    //protected $casts = ['grants' => 'array'];
 
     /**
      * Get all grants for this resource

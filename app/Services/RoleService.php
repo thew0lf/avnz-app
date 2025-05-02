@@ -2,9 +2,8 @@
 // File: app/Services/RoleService.php
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Role;
-use App\Models\RoleAssignment;
+use App\Models\{User,Role,Permission,RoleAssignment};
+
 use App\Repositories\RoleRepository;
 use App\Services\Abstracts\AbstractService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -107,4 +106,38 @@ class RoleService extends AbstractService
                 'scope_id'   => $scopeId,
             ])->delete() > 0;
     }
+    public function addPermissionsToRole(Role $role, array $permissionIds): Role
+    {
+        // Merge existing permissions with new ones (avoid duplicates)
+        $currentPermissions = $role->permissions ?: [];
+        $updatedPermissions = array_unique(array_merge($currentPermissions, $permissionIds));
+
+        // Save updated permissions
+        $role->permissions = $updatedPermissions;
+        $role->save();
+
+        return $role;
+    }
+
+
+    public function addPermissionsByNameToRole(Role $role, array $permissionNames): Role
+    {
+        $permissionIds = [];
+
+        foreach ($permissionNames as $name) {
+            $permission = Permission::firstOrCreate(['name' => $name], [
+                'guard_name' => 'web',
+            ]);
+            $permissionIds[] = $permission->_id;
+        }
+
+        $currentPermissions = $role->permissions ?: [];
+        $updatedPermissions = array_unique(array_merge($currentPermissions, $permissionIds));
+
+        $role->permissions = $updatedPermissions;
+        $role->save();
+
+        return $role;
+    }
+
 }
