@@ -22,7 +22,7 @@ class User extends Authenticatable
         'project_id',
         'client_id',
         'company_id',
-        'roles'
+
     ];
     protected $hidden = ['password'];
 
@@ -75,19 +75,6 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Company::class);
     }
-
-/**
- * Global roles
- */
-public function roles(): BelongsToMany
-{
-    return $this->belongsToMany(
-        Role::class,      // related model
-        'role_user',      // pivot collection
-        'user_ids',       // foreign key referencing this model (User) in pivot
-        'role_ids'        // foreign key referencing related model (Role) in pivot
-    );
-}
 
     /**
      * Scoped role assignments

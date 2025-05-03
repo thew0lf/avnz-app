@@ -2,6 +2,7 @@
 // File: app/Services/RoleService.php
 namespace App\Services;
 
+use MongoDB\BSON\ObjectId;
 use App\Models\{User,Role,Permission,RoleAssignment,ResourceAcl};
 
 use App\Repositories\RoleRepository;
@@ -25,29 +26,20 @@ class RoleService extends AbstractService
      * @param  mixed|null        $scopeId      The ID of the scoped resource
      * @return RoleAssignment|\MongoDB\Laravel\Eloquent\Model
      */
-    public function grant(User $user, $role, ?string $scopeType = null, $scopeId = null)
-    {
-        // resolve Role instance
-        if (is_string($role)) {
-            $role = Role::where('name', $role)->firstOrFail();
-        }
 
-        // global role?
-        if (is_null($scopeType) && is_null($scopeId)) {
-            // attach to the pivot array `roles`
-            $user->roles()->syncWithoutDetaching([$role->id]);
-            return $role;
-        }
-
-        // scoped role: use RoleAssignment model
-        return RoleAssignment::firstOrCreate([
-            'user_id'    => $user->id,
-            'role_id'    => $role->id,
-            'scope_type' => $scopeType,
-            'scope_id'   => $scopeId,
-        ]);
+public function grant(User $user, string|Role $role, ?string $scopeType, $scopeId)
+{
+    if (is_string($role)) {
+        $role = Role::where('name', $role)->firstOrFail();
     }
 
+    return RoleAssignment::firstOrCreate([
+        'user_id'    => new ObjectId($user->_id),
+        'role_id'    => new ObjectId($role->_id),
+        'scope_type' => $scopeType,
+        'scope_id'   => new ObjectId($scopeId),
+    ]);
+}
     /**
      * Check if a user has a given role.
      *
@@ -59,23 +51,16 @@ class RoleService extends AbstractService
      */
     public function has(User $user, $roleNameOrModel, ?string $scopeType = null, $scopeId = null): bool
     {
-        $roleName = $roleNameOrModel instanceof Role
-            ? $roleNameOrModel->name
-            : $roleNameOrModel;
+        $role = $roleNameOrModel instanceof Role
+            ? $roleNameOrModel
+            : Role::where('name',$roleNameOrModel)->firstOrFail();
 
-        // global check
-        if (is_null($scopeType) && is_null($scopeId)) {
-            return $user->roles
-                ->pluck('name')
-                ->contains($roleName);
-        }
-
-        // scoped check via RoleAssignment
-        return RoleAssignment::where('user_id',    $user->id)
+        $query = RoleAssignment::where('user_id', new ObjectId($user->_id))
             ->where('scope_type', $scopeType)
-            ->where('scope_id',   $scopeId)
-            ->whereHas('role', fn($q) => $q->where('name', $roleName))
-            ->exists();
+            ->where('scope_id', new ObjectId($scopeId))
+            ->where('role_id', $role->_id );
+        return $query->exists();
+
     }
 
     /**
@@ -100,13 +85,12 @@ class RoleService extends AbstractService
             return true;
         }
 
-        // scoped revoke
         return RoleAssignment::where([
-                'user_id'    => $user->id,
-                'role_id'    => $role->id,
-                'scope_type' => $scopeType,
-                'scope_id'   => $scopeId,
-            ])->delete() > 0;
+          'user_id'    => new ObjectId($user->_id),
+          'role_id'    => new ObjectId($role->_id),
+          'scope_type' => $scopeType,
+          'scope_id'   => new ObjectId($scopeId),
+        ])->delete() > 0;
     }
     public function addPermissionsToRole(Role $role, array $permissionIds): Role
     {
@@ -153,9 +137,9 @@ class RoleService extends AbstractService
      * @param  array   $resourceAcls     [ ['type'=>'project','id'=>…, 'grant'=>'read'], … ]
      * @return User
      */
-    public function add(User|array $user, string $roleName, array $permissionNames = [], array $resourceAcls = []): User
+    public function add(User|array $user, string $roleName, array $permissionNames = [], array $roleAssignments = []): User
     {
-        // Make sure password is already bcrypt’d in $userData, or use bcrypt() here
+        // Make sure the password is already bcrypt’d in $user, or use bcrypt() here
         $user = ($user instanceof User)?$user:User::create($user);
 
         // 1) Seed permissions
@@ -178,18 +162,8 @@ class RoleService extends AbstractService
             ['display_name'=>$roleName,'description' => ucfirst($roleName) . ' role', 'permissions' => []]
         );
         $this->addPermissionsToRole($role, $permissionIds);
-
-        // 3) Grant the new role to the existing user
-        $this->grant($user, $role);
-
-        // 4) Seed any resource‐ACLs
-        foreach ($resourceAcls as $acl) {
-            ResourceAcl::firstOrCreate([
-                'user_id'       => $user->id,
-                'resource_type' => $acl['type'],
-                'resource_id'   => $acl['id'],
-                'grant'         => $acl['grant'],
-            ]);
+        foreach ($roleAssignments as $assignment) {
+            $this->grant($user, $role, $assignment['scope_type'], $assignment['scope_id']);
         }
 
         return $user;

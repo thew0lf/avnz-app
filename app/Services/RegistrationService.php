@@ -135,31 +135,24 @@ class RegistrationService extends AbstractService
             $user->project()->attach($project);
             $this->setClient($client);
             $this->setCompany($company);
-            //$this->permissionService->givePermissionsTo($user, $project, $client, $company, [$roleSlug])
+            $roleAssignments = [];
             if(!$userExists){
-                $resourceAcls = [
-                    [
-                        'type'  => 'project',
-                        'id'    => $project->id,
-                        'grant' => 'full',                   // or 'read', 'write', etc.
-                    ],
-                    [
-                        'type'  => 'client',
-                        'id'    => $client->id,
-                        'grant' => 'full',                   // or 'read', 'write', etc.
-                    ],
-                ];
-            }else{
-                $resourceAcls = [
-                    [
-                        'type'  => 'client',
-                        'id'    => $client->id,
-                        'grant' => 'full',                   // or 'read', 'write', etc.
-                    ],
-
+                $roleAssignments[]=[
+                    'scope_type' => 'project',
+                    'scope_id' => $project->id
                 ];
             }
-            $this->roleService->add($user, 'Administrator',Permission::ACTIONS, $resourceAcls);
+            $roleAssignments[] = [
+                'scope_type'  => 'client',
+                'scope_id'    => $client->id,
+            ];
+
+            $roleAssignments[] = [
+                    'scope_type'  => 'company',
+                    'scope_id'    => $company->id
+            ];
+
+            $this->roleService->add($user, 'Administrator',Permission::ACTIONS, $roleAssignments);
             return $user;
         });
     }

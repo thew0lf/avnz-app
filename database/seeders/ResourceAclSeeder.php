@@ -15,7 +15,7 @@ class ResourceAclSeeder extends Seeder
         $allPermissions = Permission::pluck('_id')->toArray();
         ResourceAcl::updateOrCreate(
             [
-                'resourceType' => 'user',
+                'resourceType' => 'user',//documents, clients, projects, etc.
                 'resourceId'   => new ObjectId($admin->_id),
             ],
             [

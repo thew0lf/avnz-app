@@ -7,8 +7,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth'])->group(function () {
 
     Route::get('dashboard', function () {
-        // Replace 'view-dashboard' with your policy ability or gate name.
-        Gate::authorize('dashboard');
         return Inertia::render('dashboard');
     })->name('dashboard');
 
