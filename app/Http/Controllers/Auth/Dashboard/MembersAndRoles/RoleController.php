@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Auth\Dashboard\MembersAndRoles;
 
 use App\Http\Controllers\Auth\AuthenticatedController;
+use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\{Role,Permission};
 
-class RoleController extends AuthenticatedController
+class RoleController extends Controller
 {
     /**
      * Display a listing of roles.
@@ -15,14 +17,8 @@ class RoleController extends AuthenticatedController
      */
     public function index(): Response
     {
-        // For demonstration, using static roles.
-        // Replace this with your actual Role roles retrieval logic.
-        $roles = [
-            ['id' => 1, 'name' => 'Admin'],
-        ];
+        $roles = Role::with('permissions')->get();
 
-        return Inertia::render('MembersAndRoles/Roles', [
-            'roles' => $roles,
-        ]);
+        return Inertia::render('roles/index', compact('roles'));
     }
 }

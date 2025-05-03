@@ -16,4 +16,8 @@ class Permission extends Model
         'guard_name'
     ];
 
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, null, 'permissions', 'roles');
+    }
 }
