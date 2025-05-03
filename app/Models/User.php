@@ -76,13 +76,18 @@ class User extends Authenticatable
         return $this->belongsToMany(Company::class);
     }
 
-    /**
-     * Global roles
-     */
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, null, 'roles', '_id');
-    }
+/**
+ * Global roles
+ */
+public function roles(): BelongsToMany
+{
+    return $this->belongsToMany(
+        Role::class,      // related model
+        'role_user',      // pivot collection
+        'user_ids',       // foreign key referencing this model (User) in pivot
+        'role_ids'        // foreign key referencing related model (Role) in pivot
+    );
+}
 
     /**
      * Scoped role assignments
@@ -143,6 +148,11 @@ class User extends Authenticatable
             ->flatMap(fn($role) => $role->permissions)
             ->pluck('name')
         ->contains($permissionName);
+    }
+
+    public function users(): belongsToMany
+    {
+        return $this->belongsToMany(User::class, 'role_user', 'role_ids', 'user_ids');
     }
 
 }

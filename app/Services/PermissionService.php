@@ -5,9 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Repositories\PermissionRepository;
 use App\Services\Abstracts\AbstractService;
-use App\Models\Project;
-use App\Models\Client;
-use App\Models\Company;
+use App\Models\{Project,Client,Company,Permission};
+
 
 class PermissionService extends AbstractService
 {

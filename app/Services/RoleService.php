@@ -2,14 +2,16 @@
 // File: app/Services/RoleService.php
 namespace App\Services;
 
-use App\Models\{User,Role,Permission,RoleAssignment};
+use App\Models\{User,Role,Permission,RoleAssignment,ResourceAcl};
 
 use App\Repositories\RoleRepository;
 use App\Services\Abstracts\AbstractService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 
 class RoleService extends AbstractService
 {
+
     public function __construct()
     {
         $this->repository = new RoleRepository();
@@ -108,8 +110,10 @@ class RoleService extends AbstractService
     }
     public function addPermissionsToRole(Role $role, array $permissionIds): Role
     {
+
         // Merge existing permissions with new ones (avoid duplicates)
-        $currentPermissions = $role->permissions ?: [];
+        $currentPermissions = $role->getAttribute('permissions') ?: [];
+
         $updatedPermissions = array_unique(array_merge($currentPermissions, $permissionIds));
 
         // Save updated permissions
@@ -138,6 +142,57 @@ class RoleService extends AbstractService
         $role->save();
 
         return $role;
+    }
+
+    /**
+     * Seed permissions, create/assign a role, and add resource ACLs for an existing user.
+     *
+     * @param  User    $user
+     * @param  string  $roleName         The name of the role to create/assign
+     * @param  array   $permissionNames  e.g. ['create-post','delete-post']
+     * @param  array   $resourceAcls     [ ['type'=>'project','id'=>…, 'grant'=>'read'], … ]
+     * @return User
+     */
+    public function add(User|array $user, string $roleName, array $permissionNames = [], array $resourceAcls = []): User
+    {
+        // Make sure password is already bcrypt’d in $userData, or use bcrypt() here
+        $user = ($user instanceof User)?$user:User::create($user);
+
+        // 1) Seed permissions
+        $permissionIds = [];
+        foreach ($permissionNames as $action) {
+            $perm = Permission::firstOrCreate(
+                ['name' => $action],
+                [
+                    'guard_name'  => 'web',
+                    'description' => ucfirst($action) . ' permission',
+                ]
+            );
+            $permissionIds[] = $perm->id;
+        }
+
+        // 2) Seed role and attach permissions
+
+        $role = Role::firstOrCreate(
+            ['name' => Str::slug($roleName)],
+            ['display_name'=>$roleName,'description' => ucfirst($roleName) . ' role', 'permissions' => []]
+        );
+        $this->addPermissionsToRole($role, $permissionIds);
+
+        // 3) Grant the new role to the existing user
+        $this->grant($user, $role);
+
+        // 4) Seed any resource‐ACLs
+        foreach ($resourceAcls as $acl) {
+            ResourceAcl::firstOrCreate([
+                'user_id'       => $user->id,
+                'resource_type' => $acl['type'],
+                'resource_id'   => $acl['id'],
+                'grant'         => $acl['grant'],
+            ]);
+        }
+
+        return $user;
     }
 
 }

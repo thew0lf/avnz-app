@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
 use App\Services\Abstracts\AbstractService;
-use App\Models\{Client,Company,Project,User};
+use App\Models\{Client,Company,Project,User,Permission};
+
+
 class RegistrationService extends AbstractService
 {
     protected ClientService $clientService;
@@ -101,11 +103,11 @@ class RegistrationService extends AbstractService
         $this->setProject($project);
 
         return DB::transaction(function () use ($validated, $project) {
-            $roleSlug = !$this->userService
+            $userExists = !$this->userService
                                 ->repository->getQuery()
                                 ->limit(1)
-                                ->first() ? 'administrator' : 'client_administrator';
-            $roleName = ucwords(str_replace('_', ' ', $roleSlug));
+                                ->first() ? false : true;
+
 
 
             // Create client and company instances
@@ -134,11 +136,30 @@ class RegistrationService extends AbstractService
             $this->setClient($client);
             $this->setCompany($company);
             //$this->permissionService->givePermissionsTo($user, $project, $client, $company, [$roleSlug])
-            if($roleSlug == 'administrator'){
-                $this->roleService->grant($user, $roleSlug, 'project', $project->_id);
+            if(!$userExists){
+                $resourceAcls = [
+                    [
+                        'type'  => 'project',
+                        'id'    => $project->id,
+                        'grant' => 'full',                   // or 'read', 'write', etc.
+                    ],
+                    [
+                        'type'  => 'client',
+                        'id'    => $client->id,
+                        'grant' => 'full',                   // or 'read', 'write', etc.
+                    ],
+                ];
             }else{
-                $this->roleService->grant($user, $roleSlug, 'client', $client->_id);
+                $resourceAcls = [
+                    [
+                        'type'  => 'client',
+                        'id'    => $client->id,
+                        'grant' => 'full',                   // or 'read', 'write', etc.
+                    ],
+
+                ];
             }
+            $this->roleService->add($user, 'Administrator',Permission::ACTIONS, $resourceAcls);
             return $user;
         });
     }

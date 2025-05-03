@@ -64,7 +64,7 @@ class PermissionController extends Controller
             'role' => ['sometimes', 'string', 'max:255'],
             'resource' => ['sometimes', 'string', 'max:255'],
             'permissions' => ['sometimes', 'array'],
-            'permissions.*' => ['string', Rule::in(['list', 'create', 'update', 'delete'])],
+            'permissions.*' => ['string', Rule::in(Permission::ACTIONS)],
         ]);
 
         $permission->update($validated);

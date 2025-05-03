@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "avnz-app",
+    "name": "avnz/app",
     "type": "project",
     "description": "AVNZ APP: Modern Laravel 12 + Inertia.js/React dashboard powered by MongoDB Atlas.",
     "keywords": [

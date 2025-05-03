@@ -9,7 +9,7 @@ use MongoDB\Laravel\Eloquent\Model;
 
 class Permission extends Model
 {
-
+    public const ACTIONS = ['list', 'view', 'create', 'modify', 'delete'];
     protected $fillable = [
         'name',
         'description',

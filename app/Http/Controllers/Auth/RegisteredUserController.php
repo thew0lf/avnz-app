@@ -85,7 +85,7 @@ class RegisteredUserController extends Controller
                 return redirect(route('dashboard'));
             }
         } catch (Exception $e) {
-            \Log::error('User registration failed: ' . $e->getMessage());
+            \Log::error('User registration failed: ' . $e->getMessage() . "\n" . $e->getTraceAsString() );
         }
         return back()->withErrors([
             'error' => 'Registration failed. Please try again.',
