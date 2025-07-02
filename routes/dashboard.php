@@ -16,9 +16,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('members-and-roles.roles.index')
         ->middleware('auth');
 
-    Route::get('members-and-roles/roles/create', [RoleController::class, 'create'])
-        ->name('members-and-roles.roles.create')
-        ->middleware('auth');
 
     Route::get('members-and-roles/roles/show/{role}', [RoleController::class, 'show'])
         ->name('members-and-roles.roles.show')

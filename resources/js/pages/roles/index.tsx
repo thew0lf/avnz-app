@@ -59,6 +59,7 @@ export default function Index() {
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
+    const [createModalOpen, setCreateModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -106,8 +107,42 @@ export default function Index() {
     }, [roles, setData]);
 
     const handleCreate = useCallback(() => {
-        router.visit(route('members-and-roles.roles.create'));
-    }, []);
+        // Reset form data
+        setData({
+            display_name: '',
+            name: '',
+            permissions: [],
+        });
+        setCreateModalOpen(true);
+    }, [setData]);
+
+    const handleSubmitCreate = useCallback((e: React.FormEvent) => {
+        e.preventDefault();
+
+        setErrorMessage(null); // Clear any previous errors
+        router.post('/members-and-roles/roles', data, {
+            preserveScroll: true,
+            onSuccess: (page) => {
+                // Update the local state with the updated roles data
+                if (page.props.roles) {
+                    setRoles(page.props.roles);
+                }
+                setCreateModalOpen(false);
+                reset();
+            },
+            onError: (errors) => {
+                // If there's a general error message
+                if (errors.error) {
+                    setErrorMessage(errors.error);
+                    setCreateModalOpen(false);
+                } else if (errors._error) {
+                    setErrorMessage(errors._error);
+                    setCreateModalOpen(false);
+                }
+                // Form validation errors are handled by the form itself
+            },
+        });
+    }, [data, router, reset]);
 
     const handleDelete = useCallback(() => {
         if (!selectedRole) return;
@@ -445,6 +480,108 @@ export default function Index() {
                             </Button>
                             <Button type="submit" disabled={processing}>
                                 {processing ? 'Updating...' : 'Update Role'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Create Role Modal */}
+            <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Create New Role</DialogTitle>
+                        <DialogDescription>
+                            Add a new role with specific permissions.
+                        </DialogDescription>
+                        <DialogClose className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                        </DialogClose>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmitCreate} className="space-y-4 py-4">
+                        {/* Display Name Field */}
+                        <div className="space-y-2">
+                            <label htmlFor="create_display_name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Display Name
+                            </label>
+                            <input
+                                id="create_display_name"
+                                type="text"
+                                value={data.display_name}
+                                onChange={(e) => setData('display_name', e.target.value)}
+                                className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                    errors.display_name ? 'border-red-500 focus-visible:ring-red-500' : ''
+                                }`}
+                                required
+                            />
+                            {errors.display_name && (
+                                <p className="text-sm font-medium text-red-500">{errors.display_name}</p>
+                            )}
+                        </div>
+
+                        {/* Route Name Field */}
+                        <div className="space-y-2">
+                            <label htmlFor="create_route_name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Route Name
+                            </label>
+                            <input
+                                id="create_route_name"
+                                type="text"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                    errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''
+                                }`}
+                                required
+                            />
+                            {errors.name && (
+                                <p className="text-sm font-medium text-red-500">{errors.name}</p>
+                            )}
+                        </div>
+
+                        {/* Permissions Section */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium leading-none">Permissions</label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => toggleAllPermissions(data.permissions.length !== allPermissions.length)}
+                                    className="h-8 text-xs"
+                                >
+                                    {data.permissions.length === allPermissions.length ? 'Deselect All' : 'Select All'}
+                                </Button>
+                            </div>
+                            <div className="max-h-60 overflow-y-auto rounded-md border p-2">
+                                {allPermissions.map((perm) => (
+                                    <div key={perm.id} className="flex items-center space-x-2 py-1">
+                                        <input
+                                            type="checkbox"
+                                            id={`create_perm_${perm.id}`}
+                                            checked={data.permissions.includes(String(perm.id))}
+                                            onChange={() => togglePermission(perm.id)}
+                                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor={`create_perm_${perm.id}`} className="text-sm">
+                                            {perm.description || perm.name}
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                            {errors.permissions && (
+                                <p className="text-sm font-medium text-red-500">{errors.permissions}</p>
+                            )}
+                        </div>
+
+                        <DialogFooter className="flex justify-end space-x-2">
+                            <Button variant="outline" type="button" onClick={() => setCreateModalOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={processing}>
+                                {processing ? 'Creating...' : 'Create Role'}
                             </Button>
                         </DialogFooter>
                     </form>
