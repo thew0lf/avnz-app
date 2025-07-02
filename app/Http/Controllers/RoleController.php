@@ -171,7 +171,7 @@ class RoleController extends Controller
             // Set permissions to the role (replacing any existing ones)
             $this->roleService->setPermissionsToRole($role, $data['permissions'] ?? []);
 
-            // Redirect back to list or edit page with success message
+            // Redirect back to list or edit page with a success message
             return redirect()
                 ->route('members-and-roles.roles.index')
                 ->with('success', 'Role updated successfully.');
