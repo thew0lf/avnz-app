@@ -7,6 +7,12 @@ use MongoDB\Laravel\Eloquent\Model;
 
 abstract class AbstractService
 {
+    /**
+     * The repository instance.
+     *
+     * @var \App\Repositories\Abstracts\AbstractRepository
+     */
+    protected $repository;
     public function getModel()
     {
         return $this->repository->getModel();
@@ -17,14 +23,14 @@ abstract class AbstractService
         return $this->repository->create($data);
     }
 
-    public function update(array $data, int $id): int
+    public function update(array $data, string $id): int
     {
         return $this->repository->update($data, $id);
     }
 
-    public function delete(int $id): bool
+    public function delete(string $id): bool
     {
-        return $this->repository->delete($id);
+        return $this->repository->deleteById($id);
     }
 
     public function all(): Collection
@@ -32,9 +38,9 @@ abstract class AbstractService
         return $this->repository->all();
     }
 
-    public function find(int $id)
+    public function find(string $id)
     {
-        return $this->repository->find($id);
+        return $this->repository->findById($id);
     }
 
     public function findByName(string $name):? Model

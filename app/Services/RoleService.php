@@ -98,6 +98,11 @@ public function grant(User $user, string|Role $role, ?string $scopeType, $scopeI
         // Merge existing permissions with new ones (avoid duplicates)
         $currentPermissions = $role->getAttribute('permissions') ?: [];
 
+        // Convert to array if it's a Collection
+        if ($currentPermissions instanceof \Illuminate\Database\Eloquent\Collection) {
+            $currentPermissions = $currentPermissions->toArray();
+        }
+
         $updatedPermissions = array_unique(array_merge($currentPermissions, $permissionIds));
 
         // Save updated permissions
@@ -120,11 +125,31 @@ public function grant(User $user, string|Role $role, ?string $scopeType, $scopeI
         }
 
         $currentPermissions = $role->permissions ?: [];
+
+        // Convert to array if it's a Collection
+        if ($currentPermissions instanceof \Illuminate\Database\Eloquent\Collection) {
+            $currentPermissions = $currentPermissions->toArray();
+        }
+
         $updatedPermissions = array_unique(array_merge($currentPermissions, $permissionIds));
 
         $role->permissions = $updatedPermissions;
         $role->save();
 
+        return $role;
+    }
+
+    /**
+     * Set permissions to a role (replacing any existing permissions).
+     *
+     * @param Role $role
+     * @param array $permissionIds
+     * @return Role
+     */
+    public function setPermissionsToRole(Role $role, array $permissionIds): Role
+    {
+        // Set permissions directly (replacing any existing ones)
+        $role->update(['permissions' => $permissionIds]);
         return $role;
     }
 

@@ -73,9 +73,9 @@ return [
         ],
         'mongodb' => [
             'driver' => 'mongodb',
-            'table'  => 'jobs',
+            'collection' => 'jobs',
             'queue'  => 'default',
-            'expire' => 60,
+            'retry_after' => 90,
         ],
 
     ],

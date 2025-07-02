@@ -7,10 +7,11 @@ use Illuminate\Support\Str;
 use MongoDB\Laravel\Auth\User as Authenticatable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\BelongsToMany;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use SoftDeletes;
+    use SoftDeletes, Notifiable;
 
     protected string $collection = 'users';
 

@@ -85,4 +85,8 @@ class PermissionService extends AbstractService
     {
         return array_merge($this->clientPermissions, $this->companyPermissions);
     }
+    public function getAllByIds(array $permissionIds): array
+    {
+        return $this->repository->getQuery()->whereIn('_id', $permissionIds)->get()->toArray();
+    }
 }

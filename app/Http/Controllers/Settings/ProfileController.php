@@ -37,7 +37,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return to_route('profile.edit');
+        return to_route('profile.edit')->with('status', 'Profile updated successfully.');
     }
 
     /**
@@ -53,11 +53,23 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        try {
+            $user->delete();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-        return redirect('/');
+            return redirect('/');
+        } catch (\Exception $e) {
+            // Log the error with context for better debugging
+            \Illuminate\Support\Facades\Log::error('User deletion failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $user->id ?? 'unknown'
+            ]);
+
+            // Redirect back with error message
+            return redirect()->back()->with('error', 'Failed to delete account. Please try again or contact support.');
+        }
     }
 }

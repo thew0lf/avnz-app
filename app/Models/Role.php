@@ -17,7 +17,11 @@ class Role extends Model
 
     public function permissions(): HasMany
     {
-        return $this->hasMany(Permission::class, null, 'roles', 'permissions');
+
+        return $this->hasMany(Permission::class, null, 'roles', 'permissions')
+            ->whereIn('_id', array_map(function ($id) {
+                return new \MongoDB\BSON\ObjectId($id);
+            }, $this->attributes['permissions'] ?? []));
     }
 
 }

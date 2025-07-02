@@ -75,7 +75,7 @@ class RegisteredUserController extends Controller
                 $request->session()->regenerate();
 
                 $request->session()->put('client',
-                    $this->registrationService->getClient());;
+                    $this->registrationService->getClient());
                 $request->session()->put('project',
                     $this->registrationService->getProject());
                 $request->session()->put('company',
@@ -85,7 +85,12 @@ class RegisteredUserController extends Controller
                 return redirect(route('dashboard'));
             }
         } catch (Exception $e) {
-            \Log::error('User registration failed: ' . $e->getMessage() . "\n" . $e->getTraceAsString() );
+            // Log the error with context for better debugging
+            \Illuminate\Support\Facades\Log::error('User registration failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'email' => $validated['email'] ?? 'unknown'
+            ]);
         }
         return back()->withErrors([
             'error' => 'Registration failed. Please try again.',

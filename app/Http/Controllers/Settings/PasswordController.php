@@ -18,10 +18,17 @@ class PasswordController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('settings/password', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => $request->session()->get('status'),
-        ]);
+        try {
+            return Inertia::render('settings/password', [
+                'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+                'status' => $request->session()->get('status'),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in PasswordController::edit(): ' . $e->getMessage());
+            return Inertia::render('Error', [
+                'message' => 'An error occurred while loading the password settings page.'
+            ]);
+        }
     }
 
     /**
@@ -29,15 +36,20 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'current_password' => ['required', 'current_password'],
+                'password' => ['required', Password::defaults(), 'confirmed'],
+            ]);
 
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
+            $request->user()->update([
+                'password' => Hash::make($validated['password']),
+            ]);
 
-        return back();
+            return back()->with('status', 'Password updated successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error in PasswordController::update(): ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Failed to update password. Please try again.']);
+        }
     }
 }

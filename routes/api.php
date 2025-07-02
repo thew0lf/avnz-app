@@ -1,16 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProjectController;
-use App\Http\Controllers\Api\PermissionController;
-use Illuminate\Support\Facades\Gate;
-use App\Http\Controllers\Api\RoleController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('api')
-    ->middleware('api')
+    ->middleware(['api','auth'])  // 'auth:sanctum', 'throttle:api' Added auth:sanctum and throttle for security
     ->group(function () {
         Route::get('project', [ProjectController::class, 'index'])
             ->name('project.index');
-        Route::apiResource('permissions', PermissionController::class);
-        Route::apiResource('roles', RoleController::class);
-});
+    });

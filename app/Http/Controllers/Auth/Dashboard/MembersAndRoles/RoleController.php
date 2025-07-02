@@ -15,10 +15,75 @@ class RoleController extends Controller
      *
      * @return \Inertia\Response
      */
-    public function index(): Response
+    public function index() : Response
     {
-        $roles = Role::with('permissions')->get();
+        try {
+            $roles = Role::all();
+        } catch (\Exception $e) {
+            \Log::error('Error in MembersAndRoles/RoleController::index(): ' . $e->getMessage());
+            $roles = [];
+        }
 
-        return Inertia::render('roles/index', compact('roles'));
+        try {
+            $permissions = Permission::all();
+        } catch (\Exception $e) {
+            \Log::error('Error loading permissions in MembersAndRoles/RoleController::index(): ' . $e->getMessage());
+            $permissions = [];
+        }
+
+        return Inertia::render('roles/index', [
+            'roles' => $roles,
+            'permissions' => $permissions,
+        ]);
+    }
+
+    public function create() : Response
+    {
+        try {
+            $permissions = Permission::all();
+        } catch (\Exception $e) {
+            \Log::error('Error loading permissions in MembersAndRoles/RoleController::create(): ' . $e->getMessage());
+            $permissions = [];
+        }
+
+        return Inertia::render('roles/create', [
+            'permissions' => $permissions,
+        ]);
+    }
+
+    public function show(Role $role) : Response
+    {
+        try {
+            $role->load('permissions');
+        } catch (\Exception $e) {
+            \Log::error('Error loading permissions in MembersAndRoles/RoleController::show(): ' . $e->getMessage());
+        }
+
+        return Inertia::render('roles/show', [
+            'roleId' => $role->id,
+            'role' => $role,
+        ]);
+    }
+
+    public function edit(Role $role):Response
+    {
+        try {
+            $role->load('permissions');
+        } catch (\Exception $e) {
+            \Log::error('Error loading permissions in MembersAndRoles/RoleController::edit(): ' . $e->getMessage());
+        }
+
+        try {
+            $permissions = Permission::all();
+        } catch (\Exception $e) {
+            \Log::error('Error loading permissions in MembersAndRoles/RoleController::edit(): ' . $e->getMessage());
+            $permissions = [];
+        }
+
+        return Inertia::render('roles/edit', [
+            'roleId' => $role->id,
+            'role' => $role,
+            'permissions' => $permissions,
+        ]);
     }
 }

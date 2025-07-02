@@ -19,14 +19,18 @@ class ProjectController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-
-        $projectName = config('app.name');
-        $project = $this->projectService->findByName($projectName);
-        $projectValues = ($project)?collect($project->getAttributes())
-            ->only($project->getFillable())
-            ->all():[];
-        return response()->json( $projectValues );
+        try {
+            $projectName = config('app.name');
+            $project = $this->projectService->findByName($projectName);
+            $projectValues = ($project) ? collect($project->getAttributes())
+                ->only($project->getFillable())
+                ->all() : [];
+            return response()->json($projectValues);
+        } catch (\Exception $e) {
+            \Log::error('Error in ProjectController::index(): ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to retrieve project information'], 500);
+        }
     }
 }
