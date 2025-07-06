@@ -45,14 +45,14 @@ class AuthServiceProvider extends ServiceProvider
 //                || $this->permissionService->hasPermission($project, $client, $company, $user, 'permissions');
 //        });
 
-        Gate::define('members-and-roles.roles.list', function (User $user ) {
+        Gate::define('security.roles.list', function (User $user ) {
 
             $client     = session('client');
             $project    = session('project');
             $company    = session('company');
 
             return $this->roleService->has($user,'administrator','project',$project->_id)
-                || $this->roleService->has($user,'members-and-roles.roles','project',$project->_id);
+                || $this->roleService->has($user,'security.roles','project',$project->_id);
         });
     }
 }

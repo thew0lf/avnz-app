@@ -9,7 +9,7 @@ class RoleAssignment extends Model
     protected $fillable = [
         'user_id',     // ObjectId of User
         'role_id',     // ObjectId of Role
-        'scope_type',  // 'company', 'client', or 'project'
+        'scope_type',  // 'company', 'client', 'project', or 'team'
         'scope_id',    // ObjectId of the scoped document
     ];
 
@@ -27,5 +27,14 @@ class RoleAssignment extends Model
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id', '_id');
+    }
+
+    /**
+     * Get the team this assignment belongs to (if scope_type is 'team')
+     */
+    public function team()
+    {
+        return $this->belongsTo(Team::class, 'scope_id', '_id')
+            ->where('scope_type', 'team');
     }
 }

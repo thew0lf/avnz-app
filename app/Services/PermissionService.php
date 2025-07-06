@@ -14,6 +14,7 @@ class PermissionService extends AbstractService
     protected $projectPermissions = ['admin'];
     protected $clientPermissions = ['client_admin', 'client_user', 'dashboard',];
     protected $companyPermissions = ['company_admin', 'company_user'];
+    protected $teamPermissions = ['team_admin', 'team_member'];
 
     public function __construct()
     {
@@ -81,9 +82,15 @@ class PermissionService extends AbstractService
     {
         return $this->companyPermissions;
     }
+
+    public function getTeamPermissions(): array
+    {
+        return $this->teamPermissions;
+    }
+
     public function getRegistrationPermissions(): array
     {
-        return array_merge($this->clientPermissions, $this->companyPermissions);
+        return array_merge($this->clientPermissions, $this->companyPermissions, $this->teamPermissions);
     }
     public function getAllByIds(array $permissionIds): array
     {

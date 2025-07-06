@@ -19,11 +19,15 @@ class User extends Authenticatable
         'name', 'email', 'password', 'key', 'username', 'display_name',
         'first_name', 'last_name', 'address_book_id', 'status',
         'email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at',
-
+        'timezone',
         'project_id',
         'client_id',
         'company_id',
 
+    ];
+
+    protected $attributes = [
+        'timezone' => 'Europe/London',
     ];
     protected $hidden = ['password'];
 
@@ -75,6 +79,14 @@ class User extends Authenticatable
     public function company(): BelongsToMany
     {
         return $this->belongsToMany(Company::class);
+    }
+
+    /**
+     * The teams that the user belongs to.
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class);
     }
 
     /**

@@ -9,9 +9,9 @@ import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Members & Roles', href: '/members-and-roles' },
-    { title: 'Roles', href: '/members-and-roles/roles' },
-    { title: 'Create Role', href: '/members-and-roles/roles/create' },
+    { title: 'Teams & Roles', href: '/teams-and-roles' },
+    { title: 'Roles', href: '/teams-and-roles/roles' },
+    { title: 'Create Role', href: '/teams-and-roles/roles/create' },
 ];
 
 interface Permission {
@@ -54,7 +54,7 @@ export default function Create() {
         setErrorMessage(null); // Clear any previous error
         router.post(route('roles.store'), data, {
             onSuccess: () => {
-                router.visit('/members-and-roles/roles');
+                router.visit('/teams-and-roles/roles');
             },
             onError: (errors) => {
                 // If there's a general error message

@@ -15,6 +15,7 @@ import {
     DialogClose,
     DialogDescription,
 } from '@/components/ui/dialog';
+import { ConfirmationModal } from '@/components/DataTable';
 
 interface Permission {
     id: number;
@@ -39,8 +40,8 @@ interface RoleFormData {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Members & Roles', href: '/members-and-roles' },
-    { title: 'Roles', href: '/members-and-roles/roles' },
+    { title: 'Security', href: '/security' },
+    { title: 'Roles', href: '/security/roles' },
 ];
 
 export default function Index() {
@@ -120,7 +121,7 @@ export default function Index() {
         e.preventDefault();
 
         setErrorMessage(null); // Clear any previous errors
-        router.post('/members-and-roles/roles', data, {
+        router.post('/security/roles', data, {
             preserveScroll: true,
             onSuccess: (page) => {
                 // Update the local state with the updated roles data
@@ -148,7 +149,7 @@ export default function Index() {
         if (!selectedRole) return;
 
         setErrorMessage(null); // Clear any previous errors
-        router.delete(`/members-and-roles/roles/${selectedRole.id}`, {
+        router.delete(`/security/roles/${selectedRole.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 setDeleteModalOpen(false);
@@ -166,7 +167,7 @@ export default function Index() {
         if (!selectedRole) return;
 
         setErrorMessage(null); // Clear any previous errors
-        put(`/members-and-roles/roles/${selectedRole.id}`, {
+        put(`/security/roles/${selectedRole.id}`, {
             preserveScroll: true,
             onSuccess: (page) => {
                 // Update the local state with the updated role data
@@ -589,34 +590,22 @@ export default function Index() {
             </Dialog>
 
             {/* Delete Role Modal */}
-            <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Delete Role</DialogTitle>
-                        <DialogDescription>
-                            Confirm deletion of this role.
-                        </DialogDescription>
-                        <DialogClose className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none">
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Close</span>
-                        </DialogClose>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <p className="text-center">
-                            Are you sure you want to delete the role <strong>{selectedRole?.display_name}</strong>?
-                        </p>
-                        <p className="mt-1 text-center text-sm text-gray-500">This action cannot be undone.</p>
-                    </div>
-                    <DialogFooter className="flex justify-end space-x-2">
-                        <Button type="button" variant="outline" onClick={() => setDeleteModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button type="button" variant="destructive" onClick={handleDelete}>
-                            Delete
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <ConfirmationModal
+                open={deleteModalOpen}
+                onOpenChange={setDeleteModalOpen}
+                title="Delete Role"
+                description="Confirm deletion of this role."
+                confirmLabel="Delete"
+                confirmVariant="destructive"
+                onConfirm={handleDelete}
+            >
+                <div className="py-4">
+                    <p className="text-center">
+                        Are you sure you want to delete the role <strong>{selectedRole?.display_name}</strong>?
+                    </p>
+                    <p className="mt-1 text-center text-sm text-gray-500">This action cannot be undone.</p>
+                </div>
+            </ConfirmationModal>
         </AppLayout>
     );
 }

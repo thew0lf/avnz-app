@@ -22,7 +22,7 @@ interface RolesProps {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Members & Roles', href: '/members-and-roles/roles' },
+    { title: 'Teams & Roles', href: '/teams-and-roles/roles' },
 ];
 
 export default function Roles({ roles }: RolesProps) {

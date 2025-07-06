@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\Dashboard\MembersAndRoles\RoleController;
+use App\Http\Controllers\Auth\Dashboard\TeamsAndRoles\RoleController;
 use App\Http\Controllers\PermissionController;
 
 Route::middleware(['auth'])->group(function () {
@@ -12,25 +12,44 @@ Route::middleware(['auth'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::get('members-and-roles/roles', [RoleController::class, 'index'])
-        ->name('members-and-roles.roles.index')
+    Route::get('security/roles', [RoleController::class, 'index'])
+        ->name('security.roles.index')
         ->middleware('auth');
 
 
-    Route::get('members-and-roles/roles/show/{role}', [RoleController::class, 'show'])
-        ->name('members-and-roles.roles.show')
+    Route::get('security/roles/show/{role}', [RoleController::class, 'show'])
+        ->name('security.roles.show')
         ->middleware('auth');
 
-    Route::get('members-and-roles/roles/edit/{role}', [RoleController::class, 'edit'])
-        ->name('members-and-roles.roles.edit')
+    Route::get('security/roles/edit/{role}', [RoleController::class, 'edit'])
+        ->name('security.roles.edit')
         ->middleware('auth');
 
-    Route::prefix('members-and-roles/permissions')->name('members-and-roles.permissions.')->group(function () {
+    Route::prefix('security/permissions')->name('security.permissions.')->group(function () {
         Route::get('/', [PermissionController::class, 'index'])->name('index');
         Route::post('/', [PermissionController::class, 'store'])->name('store');
         Route::get('/{permission}', [PermissionController::class, 'show'])->name('show');
         Route::put('/{permission}', [PermissionController::class, 'update'])->name('update');
         Route::delete('/{permission}', [PermissionController::class, 'destroy'])->name('destroy');
+    });
+
+    // Teams routes
+    Route::prefix('security/teams')->name('security.teams.')->group(function () {
+        Route::get('/', [App\Http\Controllers\TeamController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\TeamController::class, 'store'])->name('store');
+        Route::get('/create', [App\Http\Controllers\TeamController::class, 'create'])->name('create');
+        Route::get('/{team}', [App\Http\Controllers\TeamController::class, 'show'])->name('show');
+        Route::get('/{team}/edit', [App\Http\Controllers\TeamController::class, 'edit'])->name('edit');
+        Route::put('/{team}', [App\Http\Controllers\TeamController::class, 'update'])->name('update');
+        Route::delete('/{team}', [App\Http\Controllers\TeamController::class, 'destroy'])->name('destroy');
+
+        // Team member management routes
+        Route::post('/{team}/members', [App\Http\Controllers\TeamController::class, 'addMember'])->name('members.add');
+        Route::delete('/{team}/members', [App\Http\Controllers\TeamController::class, 'removeMember'])->name('members.remove');
+
+        // Team role assignment routes
+        Route::post('/{team}/roles', [App\Http\Controllers\TeamController::class, 'assignRole'])->name('roles.assign');
+        Route::delete('/{team}/roles', [App\Http\Controllers\TeamController::class, 'revokeRole'])->name('roles.revoke');
     });
 
 

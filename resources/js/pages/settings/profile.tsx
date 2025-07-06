@@ -9,6 +9,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
@@ -22,7 +23,26 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface ProfileForm {
     name: string;
     email: string;
+    timezone: string;
 }
+
+// List of common timezones
+const timezones = [
+    'Africa/Abidjan', 'Africa/Accra', 'Africa/Algiers', 'Africa/Bissau', 'Africa/Cairo', 'Africa/Casablanca',
+    'Africa/Johannesburg', 'Africa/Lagos', 'Africa/Nairobi', 'America/Argentina/Buenos_Aires', 'America/Bogota',
+    'America/Caracas', 'America/Chicago', 'America/Denver', 'America/Halifax', 'America/Los_Angeles',
+    'America/Mexico_City', 'America/New_York', 'America/Phoenix', 'America/Santiago', 'America/Sao_Paulo',
+    'America/St_Johns', 'America/Toronto', 'Asia/Baghdad', 'Asia/Bangkok', 'Asia/Beirut', 'Asia/Dhaka',
+    'Asia/Dubai', 'Asia/Hong_Kong', 'Asia/Istanbul', 'Asia/Jakarta', 'Asia/Jerusalem', 'Asia/Karachi',
+    'Asia/Kolkata', 'Asia/Kuala_Lumpur', 'Asia/Manila', 'Asia/Qatar', 'Asia/Seoul', 'Asia/Shanghai',
+    'Asia/Singapore', 'Asia/Taipei', 'Asia/Tehran', 'Asia/Tokyo', 'Australia/Adelaide', 'Australia/Brisbane',
+    'Australia/Darwin', 'Australia/Melbourne', 'Australia/Perth', 'Australia/Sydney', 'Europe/Amsterdam',
+    'Europe/Athens', 'Europe/Belgrade', 'Europe/Berlin', 'Europe/Brussels', 'Europe/Bucharest', 'Europe/Budapest',
+    'Europe/Copenhagen', 'Europe/Dublin', 'Europe/Helsinki', 'Europe/Lisbon', 'Europe/London', 'Europe/Madrid',
+    'Europe/Moscow', 'Europe/Oslo', 'Europe/Paris', 'Europe/Prague', 'Europe/Rome', 'Europe/Stockholm',
+    'Europe/Vienna', 'Europe/Warsaw', 'Europe/Zurich', 'Pacific/Auckland', 'Pacific/Fiji', 'Pacific/Honolulu',
+    'Pacific/Midway', 'UTC'
+];
 
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
     const { auth } = usePage<SharedData>().props;
@@ -30,6 +50,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
         name: auth.user.name,
         email: auth.user.email,
+        timezone: auth.user.timezone || 'Europe/London',
     });
 
     const submit: FormEventHandler = (e) => {
@@ -80,6 +101,28 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             />
 
                             <InputError className="mt-2" message={errors.email} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="timezone">Timezone</Label>
+
+                            <Select
+                                value={data.timezone}
+                                onValueChange={(value) => setData('timezone', value)}
+                            >
+                                <SelectTrigger id="timezone" className="mt-1 block w-full">
+                                    <SelectValue placeholder="Select a timezone" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {timezones.map((timezone) => (
+                                        <SelectItem key={timezone} value={timezone}>
+                                            {timezone}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            <InputError className="mt-2" message={errors.timezone} />
                         </div>
 
                         {mustVerifyEmail && auth.user.email_verified_at === null && (

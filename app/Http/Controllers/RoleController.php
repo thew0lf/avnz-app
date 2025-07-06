@@ -47,7 +47,7 @@ class RoleController extends Controller
         }
 
         try {
-            $permissions = Permission::all();
+            $permissions = Permission::where('guard_name', 'web')->get();
         } catch (\Exception $e) {
             \Log::error('Error loading permissions in RoleController::index(): ' . $e->getMessage());
             $permissions = [];
@@ -67,7 +67,7 @@ class RoleController extends Controller
     public function create(): Response
     {
         try {
-            $permissions = Permission::all();
+            $permissions = Permission::where('guard_name', 'web')->get();
         } catch (\Exception $e) {
             \Log::error('Error loading permissions in RoleController::create(): ' . $e->getMessage());
             $permissions = [];
@@ -95,7 +95,7 @@ class RoleController extends Controller
         }
 
         try {
-            $permissions = Permission::all();
+            $permissions = Permission::where('guard_name', 'web')->get();
         } catch (\Exception $e) {
             \Log::error('Error loading permissions in RoleController::edit(): ' . $e->getMessage());
             $permissions = [];
@@ -133,7 +133,7 @@ class RoleController extends Controller
             // Set permissions to the role
             $this->roleService->setPermissionsToRole($role, $data['permissions'] ?? []);
 
-            return redirect()->route('members-and-roles.roles.index')->with('success', 'Role created successfully.');
+            return redirect()->route('security.roles.index')->with('success', 'Role created successfully.');
         } catch (\Exception $e) {
             \Log::error('Error in RoleController::store(): ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to create role. Please try again.');
@@ -173,7 +173,7 @@ class RoleController extends Controller
 
             // Redirect back to list or edit page with a success message
             return redirect()
-                ->route('members-and-roles.roles.index')
+                ->route('security.roles.index')
                 ->with('success', 'Role updated successfully.');
         } catch (\Exception $e) {
             \Log::error('Error in RoleController::update(): ' . $e->getMessage());
@@ -194,7 +194,7 @@ class RoleController extends Controller
     {
         try {
             $this->roleService->delete($role->id);
-            return redirect()->route('members-and-roles.roles.index')->with('success', 'Role deleted successfully.');
+            return redirect()->route('security.roles.index')->with('success', 'Role deleted successfully.');
         } catch (\Exception $e) {
             \Log::error('Error in RoleController::destroy(): ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to delete role. Please try again.');

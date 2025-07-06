@@ -14,14 +14,14 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Members and Roles',
-        href: '/members-and-roles',
+        title: 'Security',
+        href: '/security',
         icon: ShieldPlus,
         children: [
-            { title: 'Teams', href: '/members-and-roles/teams' },
-            { title: 'Team Members', href: '/members-and-roles/team-members' },
-            { title: 'Roles', href: '/members-and-roles/roles' },
-            { title: 'Permissions', href: '/members-and-roles/permissions' },
+            { title: 'Teams', href: '/security/teams' },
+            { title: 'Team Members', href: '/security/team-members' },
+            { title: 'Roles', href: '/security/roles' },
+            { title: 'Permissions', href: '/security/permissions' },
         ],
     },
 

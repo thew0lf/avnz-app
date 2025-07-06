@@ -16,9 +16,9 @@ import {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Members & Roles', href: '/members-and-roles' },
-    { title: 'Roles', href: '/members-and-roles/roles' },
-    { title: 'View Role', href: '/members-and-roles/roles/show' },
+    { title: 'Security', href: '/security' },
+    { title: 'Roles', href: '/security/roles' },
+    { title: 'View Role', href: '/security/roles/show' },
 ];
 
 interface Permission {
@@ -43,7 +43,7 @@ export default function Show() {
     };
 
     const handleDelete = () => {
-        router.delete(`/members-and-roles/roles/${role.id}`, {
+        router.delete(`/security/roles/${role.id}`, {
             onSuccess: () => {
                 setIsDeleteModalOpen(false);
             }
@@ -74,7 +74,7 @@ export default function Show() {
                     <CardFooter className="flex gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => router.visit(route('members-and-roles.roles.edit', role.id))}
+                            onClick={() => router.visit(route('teams-and-roles.roles.edit', role.id))}
                         >
                             <PencilIcon className="mr-2 h-4 w-4" /> Edit
                         </Button>

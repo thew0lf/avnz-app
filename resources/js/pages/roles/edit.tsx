@@ -9,8 +9,8 @@ import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Members & Roles', href: '/members-and-roles' },
-    { title: 'Roles', href: '/members-and-roles/roles' },
+    { title: 'Teams & Roles', href: '/teams-and-roles' },
+    { title: 'Roles', href: '/teams-and-roles/roles' },
     { title: 'Edit Role', href: '#' },
 ];
 
@@ -55,7 +55,7 @@ export default function Edit() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMessage(null); // Clear any previous error
-        put(`/members-and-roles/roles/${role.id}`, {
+        put(`/teams-and-roles/roles/${role.id}`, {
             preserveScroll: true,
             onError: (errors) => {
                 // If there's a general error message
