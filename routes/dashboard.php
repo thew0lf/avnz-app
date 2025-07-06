@@ -52,5 +52,29 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{team}/roles', [App\Http\Controllers\TeamController::class, 'revokeRole'])->name('roles.revoke');
     });
 
+    // Projects routes
+    Route::prefix('security/projects')->name('security.projects.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ProjectController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\ProjectController::class, 'store'])->name('store');
+        Route::put('/{project}', [App\Http\Controllers\ProjectController::class, 'update'])->name('update');
+        Route::delete('/{project}', [App\Http\Controllers\ProjectController::class, 'destroy'])->name('destroy');
+    });
+
+    // Clients routes
+    Route::prefix('security/clients')->name('security.clients.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ClientController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\ClientController::class, 'store'])->name('store');
+        Route::put('/{client}', [App\Http\Controllers\ClientController::class, 'update'])->name('update');
+        Route::delete('/{client}', [App\Http\Controllers\ClientController::class, 'destroy'])->name('destroy');
+    });
+
+    // Companies routes
+    Route::prefix('security/companies')->name('security.companies.')->group(function () {
+        Route::get('/', [App\Http\Controllers\CompanyController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\CompanyController::class, 'store'])->name('store');
+        Route::put('/{company}', [App\Http\Controllers\CompanyController::class, 'update'])->name('update');
+        Route::delete('/{company}', [App\Http\Controllers\CompanyController::class, 'destroy'])->name('destroy');
+    });
+
 
 });

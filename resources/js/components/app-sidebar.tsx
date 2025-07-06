@@ -18,6 +18,9 @@ const mainNavItems: NavItem[] = [
         href: '/security',
         icon: ShieldPlus,
         children: [
+            { title: 'Projects', href: '/security/projects' },
+            { title: 'Clients', href: '/security/clients' },
+            { title: 'Companies', href: '/security/companies' },
             { title: 'Teams', href: '/security/teams' },
             { title: 'Team Members', href: '/security/team-members' },
             { title: 'Roles', href: '/security/roles' },
