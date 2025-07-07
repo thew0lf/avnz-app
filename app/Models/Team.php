@@ -3,26 +3,46 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\SoftDeletes;
+use MongoDB\Laravel\Relations\BelongsTo;
 use MongoDB\Laravel\Relations\BelongsToMany;
 use MongoDB\Laravel\Relations\HasMany;
 
 class Team extends Model
 {
+    use SoftDeletes;
+
+    protected $collection = 'teams';
+
     protected $fillable = [
         'name',
         'display_name',
         'description',
-        'project_ids',
-        'client_ids',
-        'company_ids',
+        'company_id',
     ];
 
     /**
-     * The members that belong to the team.
+     * The company that this team belongs to.
      */
-    public function members(): BelongsToMany
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * The users that belong to the team.
+     */
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class);
+    }
+
+    /**
+     * The team-user associations.
+     */
+    public function userTeams(): HasMany
+    {
+        return $this->hasMany(UserTeam::class);
     }
 
     /**
@@ -32,29 +52,5 @@ class Team extends Model
     {
         return $this->hasMany(RoleAssignment::class, 'scope_id', '_id')
             ->where('scope_type', 'team');
-    }
-
-    /**
-     * The projects that belong to the team.
-     */
-    public function projects(): BelongsToMany
-    {
-        return $this->belongsToMany(Project::class);
-    }
-
-    /**
-     * The clients that belong to the team.
-     */
-    public function clients(): BelongsToMany
-    {
-        return $this->belongsToMany(Client::class);
-    }
-
-    /**
-     * The companies that belong to the team.
-     */
-    public function companies(): BelongsToMany
-    {
-        return $this->belongsToMany(Company::class);
     }
 }

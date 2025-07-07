@@ -22,6 +22,7 @@ class TeamService extends AbstractService
 
     /**
      * Add a member to a team.
+     * Checks for existing association before creating a new one.
      *
      * @param Team $team
      * @param User $user
@@ -29,7 +30,10 @@ class TeamService extends AbstractService
      */
     public function addMember(Team $team, User $user): Team
     {
-        $team->members()->attach($user->id);
+        // Check if the association already exists
+        if (!$user->userTeams()->where('team_id', $team->id)->exists()) {
+            $user->userTeams()->create(['team_id' => $team->id]);
+        }
         return $team;
     }
 
@@ -42,7 +46,8 @@ class TeamService extends AbstractService
      */
     public function removeMember(Team $team, User $user): Team
     {
-        $team->members()->detach($user->id);
+        // Delete the user-team association
+        $user->userTeams()->where('team_id', $team->id)->delete();
 
         // Also remove any role assignments for this user in this team
         RoleAssignment::where([
@@ -65,7 +70,7 @@ class TeamService extends AbstractService
     public function assignRole(Team $team, User $user, Role $role): RoleAssignment
     {
         // Make sure the user is a member of the team
-        if (!$team->members()->where('user_id', $user->id)->exists()) {
+        if (!$user->userTeams()->where('team_id', $team->id)->exists()) {
             $this->addMember($team, $user);
         }
 

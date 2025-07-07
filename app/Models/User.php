@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 use MongoDB\Laravel\Auth\User as Authenticatable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\BelongsToMany;
+use MongoDB\Laravel\Relations\BelongsTo;
+use MongoDB\Laravel\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -20,10 +22,6 @@ class User extends Authenticatable
         'first_name', 'last_name', 'address_book_id', 'status',
         'email_verified_at', 'remember_token', 'created_at', 'updated_at', 'deleted_at',
         'timezone',
-        'project_id',
-        'client_id',
-        'company_id',
-
     ];
 
     protected $attributes = [
@@ -61,24 +59,58 @@ class User extends Authenticatable
             }
         }
     }
-    public function addressBook()
+
+    public function addressBook(): BelongsTo
     {
         return $this->belongsTo(AddressBook::class);
     }
 
-    public function project(): BelongsToMany
+    /**
+     * The projects that the user belongs to.
+     */
+    public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class);
     }
 
-    public function client(): BelongsToMany
+    /**
+     * The user-project associations.
+     */
+    public function userProjects(): HasMany
+    {
+        return $this->hasMany(UserProject::class);
+    }
+
+    /**
+     * The clients that the user belongs to.
+     */
+    public function clients(): BelongsToMany
     {
         return $this->belongsToMany(Client::class);
     }
 
-    public function company(): BelongsToMany
+    /**
+     * The user-client associations.
+     */
+    public function userClients(): HasMany
+    {
+        return $this->hasMany(UserClient::class);
+    }
+
+    /**
+     * The companies that the user belongs to.
+     */
+    public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class);
+    }
+
+    /**
+     * The user-company associations.
+     */
+    public function userCompanies(): HasMany
+    {
+        return $this->hasMany(UserCompany::class);
     }
 
     /**
@@ -90,9 +122,17 @@ class User extends Authenticatable
     }
 
     /**
+     * The user-team associations.
+     */
+    public function userTeams(): HasMany
+    {
+        return $this->hasMany(UserTeam::class);
+    }
+
+    /**
      * Scoped role assignments
      */
-    public function roleAssignments()
+    public function roleAssignments(): HasMany
     {
         return $this->hasMany(RoleAssignment::class, 'user_id', '_id');
     }
@@ -102,12 +142,7 @@ class User extends Authenticatable
      */
     public function assignRoleScope(Role $role, string $scopeType, $scopeId)
     {
-        return RoleAssignment::create([
-            'user_id'    => $this->id,
-            'role_id'    => $role->id,
-            'scope_type' => $scopeType,
-            'scope_id'   => $scopeId,
-        ]);
+        return RoleAssignment::createAssignment($this, $role, $scopeType, $scopeId);
     }
 
     /**
@@ -116,11 +151,11 @@ class User extends Authenticatable
     public function scopedRoles(string $scopeType, $scopeId)
     {
         return $this->roleAssignments()
-        ->where('scope_type', $scopeType)
+            ->where('scope_type', $scopeType)
             ->where('scope_id', $scopeId)
             ->with('role.permissions')
-        ->get()
-        ->pluck('role');
+            ->get()
+            ->pluck('role');
     }
 
     /**
@@ -128,10 +163,24 @@ class User extends Authenticatable
      */
     public function hasGlobalPermission(string $permissionName): bool
     {
-        return $this->roles
-        ->flatMap(fn($role) => $role->permissions)
+        // Check if user has an admin role
+        $isAdmin = $this->roleAssignments()
+            ->whereHas('role', function ($query) {
+                $query->where('name', 'administrator');
+            })
+            ->exists();
+
+        if ($isAdmin) {
+            return true;
+        }
+
+        // Check for specific permission
+        return $this->roleAssignments()
+            ->with('role.permissions')
+            ->get()
+            ->flatMap(fn($assignment) => $assignment->role->permissions)
             ->pluck('name')
-        ->contains($permissionName);
+            ->contains($permissionName);
     }
 
     /**
@@ -144,15 +193,66 @@ class User extends Authenticatable
      */
     public function hasPermissionInScope(string $permissionName, string $scopeType, $scopeId): bool
     {
+        // Check if user has global admin access
+        if ($this->hasGlobalPermission('administrator')) {
+            return true;
+        }
+
         return $this->scopedRoles($scopeType, $scopeId)
             ->flatMap(fn($role) => $role->permissions)
             ->pluck('name')
-        ->contains($permissionName);
+            ->contains($permissionName);
     }
 
-    public function users(): belongsToMany
+    /**
+     * Check if user has access to a project
+     */
+    public function hasProjectAccess($projectId): bool
     {
-        return $this->belongsToMany(User::class, 'role_user', 'role_ids', 'user_ids');
+        if ($this->hasGlobalPermission('administrator')) {
+            return true;
+        }
+
+        return $this->projects()->where('_id', $projectId)->exists() ||
+               $this->hasPermissionInScope('view', 'project', $projectId);
     }
 
+    /**
+     * Check if user has access to a client
+     */
+    public function hasClientAccess($clientId): bool
+    {
+        if ($this->hasGlobalPermission('administrator')) {
+            return true;
+        }
+
+        return $this->clients()->where('_id', $clientId)->exists() ||
+               $this->hasPermissionInScope('view', 'client', $clientId);
+    }
+
+    /**
+     * Check if user has access to a company
+     */
+    public function hasCompanyAccess($companyId): bool
+    {
+        if ($this->hasGlobalPermission('administrator')) {
+            return true;
+        }
+
+        return $this->companies()->where('_id', $companyId)->exists() ||
+               $this->hasPermissionInScope('view', 'company', $companyId);
+    }
+
+    /**
+     * Check if user has access to a team
+     */
+    public function hasTeamAccess($teamId): bool
+    {
+        if ($this->hasGlobalPermission('administrator')) {
+            return true;
+        }
+
+        return $this->teams()->where('_id', $teamId)->exists() ||
+               $this->hasPermissionInScope('view', 'team', $teamId);
+    }
 }

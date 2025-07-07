@@ -119,20 +119,17 @@ class RegistrationService extends AbstractService
                 'name' => $validated['name'],
             ]);
 
-            // Create the user and assign the role.
+            // Create the user
             $user = $this->userService->create([
                 'name'       => $validated['name'],
                 'email'      => $validated['email'],
                 'password'   => Hash::make($validated['password']),
-                'project_id' => $project->id,
-                'client_id'  => $client->id,
-                'company_id' => $company->id
             ]);
 
-            // Establish relationships
-            $user->client()->attach($client);
-            $user->company()->attach($company);
-            $user->project()->attach($project);
+            // Establish relationships using association models
+            $user->userClients()->create(['client_id' => $client->id]);
+            $user->userCompanies()->create(['company_id' => $company->id]);
+            $user->userProjects()->create(['project_id' => $project->id]);
             $this->setClient($client);
             $this->setCompany($company);
             $roleAssignments = [];

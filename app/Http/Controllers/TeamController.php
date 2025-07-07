@@ -141,8 +141,8 @@ class TeamController extends Controller
     public function destroy(Team $team): RedirectResponse
     {
         try {
-            // Remove all members from the team
-            $team->members()->detach();
+            // Delete all user-team associations
+            $team->userTeams()->delete();
 
             // Delete all role assignments for this team
             $team->roleAssignments()->delete();

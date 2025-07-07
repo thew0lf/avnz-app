@@ -21,13 +21,8 @@ class AssignShortCodeListener
     {
         $user = $event->user;
 
-        // Check and assign a short code for the user if not set
-        if (empty($user->short_code)) {
-            $user->short_code = $this->shortCodeService->getCode($user);
-            $user->save();
-        }
-        // Check and assign a short code for the client if not set
-        $client = $user->client()->first();
+        // Only assign short_code to client
+        $client = $user->clients()->first();
         if ($client && empty($client->short_code)) {
             $client->short_code = $this->shortCodeService->getCode();
             $client->save();

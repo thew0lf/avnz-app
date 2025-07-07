@@ -88,6 +88,16 @@ class ProjectController extends Controller
     public function destroy(Project $project): RedirectResponse
     {
         try {
+            // Delete all user-project associations
+            $project->userProjects()->delete();
+
+            // Delete all project-client associations
+            $project->projectClients()->delete();
+
+            // Delete all role assignments for this project
+            $project->roleAssignments()->delete();
+
+            // Delete the project
             $project->delete();
 
             return redirect()->route('security.projects.index')->with('success', 'Project deleted successfully.');

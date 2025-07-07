@@ -64,7 +64,6 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
         $throttleKey = $this->throttleKey();
 
-
         // Retrieve the client using the provided client code.
         $client = Client::where('short_code', $this->input('client_code'))->first();
         if (!$client) {
@@ -75,13 +74,19 @@ class LoginRequest extends FormRequest
         }
 
         $project = $this->projectService->findByName(config('app.name'));
-        // Retrieve the user by email.
+
+        // Retrieve the user by email and check associations using the new models
         $user = User::where('email', $this->input('email'))
-            ->whereIn('client_ids', [$client->_id])
-            ->whereIn('project_ids', [$project->_id])
+            ->whereHas('userClients', function($query) use ($client) {
+                $query->where('client_id', $client->_id);
+            })
+            ->whereHas('userProjects', function($query) use ($project) {
+                $query->where('project_id', $project->_id);
+            })
             ->first();
+
         if (!$user || !Hash::check($this->input('password'), $user->password)) {
-            RateLimiter::hit($throttleKey);
+            //RateLimiter::hit($throttleKey);
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -91,7 +96,11 @@ class LoginRequest extends FormRequest
         Auth::login($user, $this->boolean('remember'));
         Auth::getSession()->put('client', $client);
         Auth::getSession()->put('project', $project);
-        Auth::getSession()->put('company', $this->companyService->getModel()->find($user->company_id)->first());
+
+        // Get the company using the association
+        $company = $user->companies()->first();
+        Auth::getSession()->put('company', $company);
+
         RateLimiter::clear($throttleKey);
     }
 

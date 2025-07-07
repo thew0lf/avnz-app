@@ -37,11 +37,11 @@ class CompanyController extends Controller
             $data = $request->validate([
                 'name' => 'required|string|max:255|unique:companies',
                 'address_book_id' => 'nullable|string',
-                'project_id' => 'nullable|string',
+                'client_id' => 'required|string|exists:clients,_id',
                 'status' => 'nullable|string',
-                'short_code' => 'nullable|string|max:10',
             ]);
 
+            // Create the company with the client relationship
             $company = Company::create($data);
 
             return redirect()->route('security.companies.index')->with('success', 'Company created successfully.');
@@ -69,9 +69,8 @@ class CompanyController extends Controller
                     Rule::unique('companies')->ignore($company->id),
                 ],
                 'address_book_id' => 'nullable|string',
-                'project_id' => 'nullable|string',
+                'client_id' => 'nullable|string|exists:clients,_id',
                 'status' => 'nullable|string',
-                'short_code' => 'nullable|string|max:10',
             ]);
 
             $company->update($data);
@@ -92,6 +91,19 @@ class CompanyController extends Controller
     public function destroy(Company $company): RedirectResponse
     {
         try {
+            // Delete all user-company associations
+            $company->userCompanies()->delete();
+
+            // Delete all teams belonging to this company
+            foreach ($company->teams as $team) {
+                // This will trigger the team's delete method which should clean up its own associations
+                $team->delete();
+            }
+
+            // Delete all role assignments for this company
+            $company->roleAssignments()->delete();
+
+            // Delete the company
             $company->delete();
 
             return redirect()->route('security.companies.index')->with('success', 'Company deleted successfully.');

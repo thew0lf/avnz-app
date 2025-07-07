@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use MongoDB\BSON\ObjectId;
-use App\Models\{User,Role,Permission,RoleAssignment,ResourceAcl};
+use App\Models\{User,Role,Permission,RoleAssignment};
 
 use App\Repositories\RoleRepository;
 use App\Services\Abstracts\AbstractService;
@@ -33,12 +33,7 @@ public function grant(User $user, string|Role $role, ?string $scopeType, $scopeI
         $role = Role::where('name', $role)->firstOrFail();
     }
 
-    return RoleAssignment::firstOrCreate([
-        'user_id'    => new ObjectId($user->_id),
-        'role_id'    => new ObjectId($role->_id),
-        'scope_type' => $scopeType,
-        'scope_id'   => new ObjectId($scopeId),
-    ]);
+    return RoleAssignment::createAssignment($user, $role, $scopeType, $scopeId);
 }
     /**
      * Check if a user has a given role.
@@ -81,8 +76,11 @@ public function grant(User $user, string|Role $role, ?string $scopeType, $scopeI
 
         // global revoke
         if (is_null($scopeType) && is_null($scopeId)) {
-            $user->roles()->detach($role->id);
-            return true;
+            // Delete all role assignments for this user and role
+            return RoleAssignment::where([
+                'user_id' => new ObjectId($user->_id),
+                'role_id' => new ObjectId($role->_id),
+            ])->delete() > 0;
         }
 
         return RoleAssignment::where([
@@ -154,12 +152,12 @@ public function grant(User $user, string|Role $role, ?string $scopeType, $scopeI
     }
 
     /**
-     * Seed permissions, create/assign a role, and add resource ACLs for an existing user.
+     * Seed permissions, create/assign a role, and add role assignments for an existing user.
      *
      * @param  User    $user
      * @param  string  $roleName         The name of the role to create/assign
      * @param  array   $permissionNames  e.g. ['create-post','delete-post']
-     * @param  array   $resourceAcls     [ ['type'=>'project','id'=>…, 'grant'=>'read'], … ]
+     * @param  array   $roleAssignments  [ ['scope_type'=>'project','scope_id'=>…], … ]
      * @return User
      */
     public function add(User|array $user, string $roleName, array $permissionNames = [], array $roleAssignments = []): User
