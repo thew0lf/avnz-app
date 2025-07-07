@@ -86,7 +86,7 @@ class LoginRequest extends FormRequest
             ->first();
 
         if (!$user || !Hash::check($this->input('password'), $user->password)) {
-            //RateLimiter::hit($throttleKey);
+            RateLimiter::hit($throttleKey);
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
