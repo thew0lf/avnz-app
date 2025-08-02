@@ -74,7 +74,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Projects routes
     Route::prefix('security/projects')->name('security.projects.')->group(function () {
-        Route::get('/', [App\Http\Controllers\ProjectController::class, 'index'])->name('index');
+        Route::get('/', [App\Http\Controllers\ProjectController::class, 'index'])
+            ->name('index');
         Route::post('/', [App\Http\Controllers\ProjectController::class, 'store'])
             ->middleware('scoped-permission:create,project')
             ->name('store');
@@ -85,19 +86,6 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('scoped-permission:delete,project')
             ->name('destroy');
 
-        // Project members routes
-        Route::get('/{project}/members', [App\Http\Controllers\ProjectMemberController::class, 'index'])
-            ->middleware('scoped-permission:view,project')
-            ->name('members.index');
-        Route::post('/{project}/members', [App\Http\Controllers\ProjectMemberController::class, 'store'])
-            ->middleware('scoped-permission:modify,project')
-            ->name('members.store');
-        Route::delete('/{project}/members', [App\Http\Controllers\ProjectMemberController::class, 'destroy'])
-            ->middleware('scoped-permission:modify,project')
-            ->name('members.destroy');
-        Route::get('/members/search', [App\Http\Controllers\ProjectMemberController::class, 'search'])
-            ->middleware('scoped-permission:view,project')
-            ->name('members.search');
     });
 
     // Clients routes

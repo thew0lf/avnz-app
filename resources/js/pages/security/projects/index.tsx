@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { PencilIcon, Trash2Icon, X, XIcon, PlusIcon, UsersIcon } from 'lucide-react';
+import { PencilIcon, Trash2Icon, X, XIcon, PlusIcon } from 'lucide-react';
 
 import { ColumnDef } from '@tanstack/react-table';
 import {
@@ -227,11 +227,6 @@ export default function Projects() {
                                 onClick: () => handleEdit(row.original.id)
                             },
                             {
-                                label: 'Members',
-                                icon: <UsersIcon className="h-4 w-4" />,
-                                onClick: () => router.get(`/security/projects/${row.original.id}/members`)
-                            },
-                            {
                                 label: 'Delete',
                                 icon: <Trash2Icon className="h-4 w-4" />,
                                 onClick: () => handleDeleteClick(row.original.id),
@@ -304,11 +299,6 @@ export default function Projects() {
                                         label: 'Edit',
                                         icon: <PencilIcon className="h-4 w-4" />,
                                         onClick: () => handleEdit(project.id)
-                                    },
-                                    {
-                                        label: 'Members',
-                                        icon: <UsersIcon className="h-4 w-4" />,
-                                        onClick: () => router.get(`/security/projects/${project.id}/members`)
                                     },
                                     {
                                         label: 'Delete',

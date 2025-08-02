@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\CheckScopedPermission;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PermissionMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+        ]);
+        
+        $middleware->alias([
+            'permission' => PermissionMiddleware::class,
+            'scoped-permission' => CheckScopedPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

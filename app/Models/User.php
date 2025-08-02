@@ -163,24 +163,23 @@ class User extends Authenticatable
      */
     public function hasGlobalPermission(string $permissionName): bool
     {
+
         // Check if user has an admin role
         $isAdmin = $this->roleAssignments()
             ->whereHas('role', function ($query) {
                 $query->where('name', 'administrator');
             })
             ->exists();
-
         if ($isAdmin) {
             return true;
         }
 
-        // Check for specific permission
-        return $this->roleAssignments()
-            ->with('role.permissions')
-            ->get()
-            ->flatMap(fn($assignment) => $assignment->role->permissions)
-            ->pluck('name')
-            ->contains($permissionName);
+        foreach ($this->roleAssignments()->get() as $assignment) {
+            if ($assignment->role->name === $permissionName ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -193,6 +192,7 @@ class User extends Authenticatable
      */
     public function hasPermissionInScope(string $permissionName, string $scopeType, $scopeId): bool
     {
+
         // Check if user has global admin access
         if ($this->hasGlobalPermission('administrator')) {
             return true;
@@ -254,5 +254,19 @@ class User extends Authenticatable
 
         return $this->teams()->where('_id', $teamId)->exists() ||
                $this->hasPermissionInScope('view', 'team', $teamId);
+    }
+
+    /**
+     * Check if a user has a specific permission
+     *
+     * This method is used by the PermissionMiddleware
+     *
+     * @param string $permission The permission name to check
+     * @return bool Whether the user has the permission
+     */
+    public function hasPermissionTo(string $permission): bool
+    {
+        // Check if user has global admin access or the specific permission
+        return $this->hasGlobalPermission('administrator') || $this->hasGlobalPermission($permission);
     }
 }

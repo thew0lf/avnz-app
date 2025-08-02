@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class CheckScopedPermission
 {
@@ -17,7 +18,7 @@ class CheckScopedPermission
      * @param  string  $scopeType
      * @return mixed
      */
-    public function handle(Request $request, Closure $next, string $permission, string $scopeType)
+    public function handle(Request $request, Closure $next, string $permission, string $scopeType): Response
     {
         $user = Auth::user();
 
@@ -34,17 +35,18 @@ class CheckScopedPermission
         $scopeId = null;
         switch ($scopeType) {
             case 'project':
-                $scopeId = $request->route('project') ?? $request->input('project_id');
+                $scopeId = $request->route('project')->id ?? $request->input('project_id');
                 break;
             case 'client':
-                $scopeId = $request->route('client') ?? $request->input('client_id');
+                $scopeId = $request->route('client')->id ?? $request->input('client_id');
                 break;
             case 'company':
-                $scopeId = $request->route('company') ?? $request->input('company_id');
+                $scopeId = $request->route('company')->id ?? $request->input('company_id');
                 break;
             case 'team':
-                $scopeId = $request->route('team') ?? $request->input('team_id');
+                $scopeId = $request->route('team')->id ?? $request->input('team_id');
                 break;
+
         }
 
         if (!$scopeId) {
@@ -52,6 +54,7 @@ class CheckScopedPermission
         }
 
         // Check if user has the required permission in the given scope
+        #echo "Permission:" . $permission . " ST:" .  $scopeType . " Scope:" . $scopeId;
         if (!$user->hasPermissionInScope($permission, $scopeType, $scopeId)) {
             return response()->json(['error' => 'Forbidden'], 403);
         }

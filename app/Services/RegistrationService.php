@@ -16,6 +16,7 @@ class RegistrationService extends AbstractService
     protected UserService $userService;
     protected RoleService $roleService;
     protected PermissionService $permissionService;
+    protected ProjectService $projectService;
 
     protected Client $client;
 
@@ -79,10 +80,11 @@ class RegistrationService extends AbstractService
         RoleService       $roleService,
         PermissionService $permissionService
     ) {
+        $this->projectService    = $projectService;
         $this->clientService     = $clientService;
         $this->companyService    = $companyService;
         $this->userService       = $userService;
-        $this->roleService        = $roleService;
+        $this->roleService       = $roleService;
         $this->permissionService = $permissionService;
     }
 
@@ -103,10 +105,8 @@ class RegistrationService extends AbstractService
         $this->setProject($project);
 
         return DB::transaction(function () use ($validated, $project) {
-            $userExists = !$this->userService
-                                ->repository->getQuery()
-                                ->limit(1)
-                                ->first() ? false : true;
+            // Check if any users exist in the system
+            $userExists = $this->userService->repository->getQuery()->exists();
 
 
 
