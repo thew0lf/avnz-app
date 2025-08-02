@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Config;
 use MongoDB\Laravel\Auth\User as Authenticatable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\BelongsToMany;
@@ -160,25 +161,22 @@ class User extends Authenticatable
 
     /**
      * Check if a user has a permission globally
+     *
+     * @param string $permissionName
+     * @return bool
      */
     public function hasGlobalPermission(string $permissionName): bool
     {
+        // Get global roles from config
+        $globalRoles = array_keys(Config::get('auth.permissions.global_roles', ['administrator' => 'Full system access']));
 
-        // Check if user has an admin role
-        $isAdmin = $this->roleAssignments()
-            ->whereHas('role', function ($query) {
-                $query->where('name', 'administrator');
-            })
-            ->exists();
-        if ($isAdmin) {
-            return true;
-        }
-
-        foreach ($this->roleAssignments()->get() as $assignment) {
-            if ($assignment->role->name === $permissionName ) {
+        // Check if user has an admin role or the specified permission
+        foreach ($this->roleAssignments()->with('role')->get() as $assignment) {
+            if ($assignment->role->name === $permissionName || in_array($assignment->role->name, $globalRoles)) {
                 return true;
             }
         }
+
         return false;
     }
 

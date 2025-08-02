@@ -112,4 +112,29 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Permission Configuration
+    |--------------------------------------------------------------------------
+    |
+    | This section defines permission-related configurations, including
+    | global permission roles and scope mappings used throughout the application.
+    |
+    */
+
+    'permissions' => [
+        // Global permission roles
+        'global_roles' => [
+            'administrator' => 'Full system access',
+        ],
+
+        // Map of scope types to their corresponding route parameter and input field names
+        'scope_map' => [
+            'project' => ['route' => 'project', 'input' => 'project_id'],
+            'client' => ['route' => 'client', 'input' => 'client_id'],
+            'company' => ['route' => 'company', 'input' => 'company_id'],
+            'team' => ['route' => 'team', 'input' => 'team_id'],
+        ],
+    ],
+
 ];

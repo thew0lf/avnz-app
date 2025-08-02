@@ -5,130 +5,137 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\Dashboard\TeamsAndRoles\RoleController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\UserController;
 
 Route::middleware(['auth'])->group(function () {
-
+    // Dashboard
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::get('security/roles', [RoleController::class, 'index'])
-        ->name('security.roles.index')
-        ->middleware('auth');
+    // Security routes group
+    Route::prefix('security')->name('security.')->group(function () {
+        // Roles routes
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::get('/', [RoleController::class, 'index'])->name('index');
+            Route::get('/show/{role}', [RoleController::class, 'show'])->name('show');
+            Route::get('/edit/{role}', [RoleController::class, 'edit'])->name('edit');
+        });
+
+        // Projects routes
+        Route::prefix('projects')->name('projects.')->group(function () {
+            Route::get('/', [ProjectController::class, 'index'])
+                ->middleware('scoped-permission:view,project')
+                ->name('index');
+
+            Route::post('/', [ProjectController::class, 'store'])
+                ->middleware('scoped-permission:create,project')
+                ->name('store');
+
+            Route::put('/{project}', [ProjectController::class, 'update'])
+                ->middleware('scoped-permission:modify,project')
+                ->name('update');
+
+            Route::delete('/{project}', [ProjectController::class, 'destroy'])
+                ->middleware('scoped-permission:delete,project')
+                ->name('destroy');
+        });
+
+        // Clients routes
+        Route::prefix('clients')->name('clients.')->group(function () {
+            Route::get('/', [ClientController::class, 'index'])->name('index');
+
+            Route::post('/', [ClientController::class, 'store'])
+                ->middleware('scoped-permission:create,client')
+                ->name('store');
+
+            Route::put('/{client}', [ClientController::class, 'update'])
+                ->middleware('scoped-permission:modify,client')
+                ->name('update');
+
+            Route::delete('/{client}', [ClientController::class, 'destroy'])
+                ->middleware('scoped-permission:delete,client')
+                ->name('destroy');
+        });
+
+        // Companies routes
+        Route::prefix('companies')->name('companies.')->group(function () {
+            Route::get('/', [CompanyController::class, 'index'])->name('index');
+
+            Route::post('/', [CompanyController::class, 'store'])
+                ->middleware('scoped-permission:create,company')
+                ->name('store');
+
+            Route::put('/{company}', [CompanyController::class, 'update'])
+                ->middleware('scoped-permission:modify,company')
+                ->name('update');
+
+            Route::delete('/{company}', [CompanyController::class, 'destroy'])
+                ->middleware('scoped-permission:delete,company')
+                ->name('destroy');
+        });
+
+        // Users routes
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+
+            Route::post('/', [UserController::class, 'store'])
+                ->middleware('scoped-permission:create,user')
+                ->name('store');
+
+            Route::put('/{user}', [UserController::class, 'update'])
+                ->middleware('scoped-permission:modify,user')
+                ->name('update');
+
+            Route::delete('/{user}', [UserController::class, 'destroy'])
+                ->middleware('scoped-permission:delete,user')
+                ->name('destroy');
+        });
+
+        // Teams routes
+        Route::prefix('teams')->name('teams.')->group(function () {
+            Route::get('/', [TeamController::class, 'index'])->name('index');
+
+            Route::middleware('scoped-permission:create,team')->group(function () {
+                Route::post('/', [TeamController::class, 'store'])->name('store');
+                Route::get('/create', [TeamController::class, 'create'])->name('create');
+            });
+
+            Route::get('/{team}', [TeamController::class, 'show'])
+                ->middleware('scoped-permission:view,team')
+                ->name('show');
+
+            Route::middleware('scoped-permission:modify,team')->group(function () {
+                Route::get('/{team}/edit', [TeamController::class, 'edit'])->name('edit');
+                Route::put('/{team}', [TeamController::class, 'update'])->name('update');
+
+                // Team member management routes
+                Route::post('/{team}/members', [TeamController::class, 'addMember'])->name('members.add');
+                Route::delete('/{team}/members', [TeamController::class, 'removeMember'])->name('members.remove');
+
+                // Team role assignment routes
+                Route::post('/{team}/roles', [TeamController::class, 'assignRole'])->name('roles.assign');
+                Route::delete('/{team}/roles', [TeamController::class, 'revokeRole'])->name('roles.revoke');
+            });
+
+            Route::delete('/{team}', [TeamController::class, 'destroy'])
+                ->middleware('scoped-permission:delete,team')
+                ->name('destroy');
+        });
+
+        // Permissions routes
+        Route::prefix('permissions')->name('permissions.')->group(function () {
+            Route::get('/', [PermissionController::class, 'index'])->name('index');
+            Route::post('/', [PermissionController::class, 'store'])->name('store');
+            Route::get('/{permission}', [PermissionController::class, 'show'])->name('show');
+            Route::put('/{permission}', [PermissionController::class, 'update'])->name('update');
+            Route::delete('/{permission}', [PermissionController::class, 'destroy'])->name('destroy');
+        });
 
 
-    Route::get('security/roles/show/{role}', [RoleController::class, 'show'])
-        ->name('security.roles.show')
-        ->middleware('auth');
-
-    Route::get('security/roles/edit/{role}', [RoleController::class, 'edit'])
-        ->name('security.roles.edit')
-        ->middleware('auth');
-
-    Route::prefix('security/permissions')->name('security.permissions.')->group(function () {
-        Route::get('/', [PermissionController::class, 'index'])->name('index');
-        Route::post('/', [PermissionController::class, 'store'])->name('store');
-        Route::get('/{permission}', [PermissionController::class, 'show'])->name('show');
-        Route::put('/{permission}', [PermissionController::class, 'update'])->name('update');
-        Route::delete('/{permission}', [PermissionController::class, 'destroy'])->name('destroy');
     });
-
-    // Teams routes
-    Route::prefix('security/teams')->name('security.teams.')->group(function () {
-        Route::get('/', [App\Http\Controllers\TeamController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\TeamController::class, 'store'])
-            ->middleware('scoped-permission:create,team')
-            ->name('store');
-        Route::get('/create', [App\Http\Controllers\TeamController::class, 'create'])
-            ->middleware('scoped-permission:create,team')
-            ->name('create');
-        Route::get('/{team}', [App\Http\Controllers\TeamController::class, 'show'])
-            ->middleware('scoped-permission:view,team')
-            ->name('show');
-        Route::get('/{team}/edit', [App\Http\Controllers\TeamController::class, 'edit'])
-            ->middleware('scoped-permission:modify,team')
-            ->name('edit');
-        Route::put('/{team}', [App\Http\Controllers\TeamController::class, 'update'])
-            ->middleware('scoped-permission:modify,team')
-            ->name('update');
-        Route::delete('/{team}', [App\Http\Controllers\TeamController::class, 'destroy'])
-            ->middleware('scoped-permission:delete,team')
-            ->name('destroy');
-
-        // Team member management routes
-        Route::post('/{team}/members', [App\Http\Controllers\TeamController::class, 'addMember'])
-            ->middleware('scoped-permission:modify,team')
-            ->name('members.add');
-        Route::delete('/{team}/members', [App\Http\Controllers\TeamController::class, 'removeMember'])
-            ->middleware('scoped-permission:modify,team')
-            ->name('members.remove');
-
-        // Team role assignment routes
-        Route::post('/{team}/roles', [App\Http\Controllers\TeamController::class, 'assignRole'])
-            ->middleware('scoped-permission:modify,team')
-            ->name('roles.assign');
-        Route::delete('/{team}/roles', [App\Http\Controllers\TeamController::class, 'revokeRole'])
-            ->middleware('scoped-permission:modify,team')
-            ->name('roles.revoke');
-    });
-
-    // Projects routes
-    Route::prefix('security/projects')->name('security.projects.')->group(function () {
-        Route::get('/', [App\Http\Controllers\ProjectController::class, 'index'])
-            ->name('index');
-        Route::post('/', [App\Http\Controllers\ProjectController::class, 'store'])
-            ->middleware('scoped-permission:create,project')
-            ->name('store');
-        Route::put('/{project}', [App\Http\Controllers\ProjectController::class, 'update'])
-            ->middleware('scoped-permission:modify,project')
-            ->name('update');
-        Route::delete('/{project}', [App\Http\Controllers\ProjectController::class, 'destroy'])
-            ->middleware('scoped-permission:delete,project')
-            ->name('destroy');
-
-    });
-
-    // Clients routes
-    Route::prefix('security/clients')->name('security.clients.')->group(function () {
-        Route::get('/', [App\Http\Controllers\ClientController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\ClientController::class, 'store'])
-            ->middleware('scoped-permission:create,client')
-            ->name('store');
-        Route::put('/{client}', [App\Http\Controllers\ClientController::class, 'update'])
-            ->middleware('scoped-permission:modify,client')
-            ->name('update');
-        Route::delete('/{client}', [App\Http\Controllers\ClientController::class, 'destroy'])
-            ->middleware('scoped-permission:delete,client')
-            ->name('destroy');
-    });
-
-    // Companies routes
-    Route::prefix('security/companies')->name('security.companies.')->group(function () {
-        Route::get('/', [App\Http\Controllers\CompanyController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\CompanyController::class, 'store'])
-            ->middleware('scoped-permission:create,company')
-            ->name('store');
-        Route::put('/{company}', [App\Http\Controllers\CompanyController::class, 'update'])
-            ->middleware('scoped-permission:modify,company')
-            ->name('update');
-        Route::delete('/{company}', [App\Http\Controllers\CompanyController::class, 'destroy'])
-            ->middleware('scoped-permission:delete,company')
-            ->name('destroy');
-    });
-
-    // Users routes
-    Route::prefix('security/users')->name('security.users.')->group(function () {
-        Route::get('/', [App\Http\Controllers\UserController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\UserController::class, 'store'])
-            ->middleware('scoped-permission:create,user')
-            ->name('store');
-        Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])
-            ->middleware('scoped-permission:modify,user')
-            ->name('update');
-        Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])
-            ->middleware('scoped-permission:delete,user')
-            ->name('destroy');
-    });
-
-
 });

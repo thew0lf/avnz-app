@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Config;
 use Exception;
 use App\Services\Abstracts\AbstractService;
 use App\Models\{Client,Company,Project,User,Permission};
@@ -149,7 +150,7 @@ class RegistrationService extends AbstractService
                     'scope_id'    => $company->id
             ];
 
-            $this->roleService->add($user, 'Administrator',Permission::ACTIONS, $roleAssignments);
+            $this->roleService->add($user, Config::get('auth.permissions.global_roles.administrator', 'administrator'), Permission::ACTIONS, $roleAssignments);
             return $user;
         });
     }
